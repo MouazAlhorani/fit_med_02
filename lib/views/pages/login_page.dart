@@ -112,14 +112,26 @@ class LoginPageP extends StatelessWidget {
                                       submit: (x) async {
                                         if (_formKey.currentState?.validate() ==
                                             true) {
-                                          await login(
-                                              ctx: context,
-                                              email: inputfields[0]
+                                          inputfields[0]
                                                   .controller!
-                                                  .text,
-                                              password: inputfields[1]
-                                                  .controller!
-                                                  .text);
+                                                  .text
+                                                  .contains("@")
+                                              ? await login(
+                                                  ctx: context,
+                                                  email: inputfields[0]
+                                                      .controller!
+                                                      .text,
+                                                  password: inputfields[1]
+                                                      .controller!
+                                                      .text)
+                                              : await login(
+                                                  ctx: context,
+                                                  phone: inputfields[0]
+                                                      .controller!
+                                                      .text,
+                                                  password: inputfields[1]
+                                                      .controller!
+                                                      .text);
                                         }
                                       },
                                       label: e.label,

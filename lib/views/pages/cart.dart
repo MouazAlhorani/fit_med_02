@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:fit_medicine_02/controllers/functions/api_requests.dart';
 import 'package:fit_medicine_02/controllers/providers/addtolist_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
-import 'package:fit_medicine_02/controllers/static/userlogin_Info.dart';
 import 'package:fit_medicine_02/models/provider_itemwithboolean_model.dart';
 import 'package:fit_medicine_02/models/service_model.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
@@ -66,6 +66,7 @@ class CartP extends StatelessWidget {
   Widget build(BuildContext context) {
     List<LocationModel> locations = context.watch<LocationProvider>().list;
     LocationProvider locationsRead = context.read<LocationProvider>();
+    List<ServiceModel> cartitems = context.watch<AddtoCartlistProvider>().list;
     return SafeArea(
         child: Directionality(
       textDirection:
@@ -82,16 +83,19 @@ class CartP extends StatelessWidget {
                   Expanded(flex: 3, child: orderDetails(context)),
                   Expanded(
                       flex: 2,
-                      child:
-                          orderResultConfirm(locations, locationsRead, context))
+                      child: orderResultConfirm(
+                          locations, locationsRead, context, cartitems))
                 ],
               ),
       ),
     ));
   }
 
-  ListView orderResultConfirm(List<LocationModel> locations,
-      LocationProvider locationsRead, BuildContext context) {
+  ListView orderResultConfirm(
+      List<LocationModel> locations,
+      LocationProvider locationsRead,
+      BuildContext context,
+      List<ServiceModel> cartitems) {
     return ListView(
       children: [
         Container(
@@ -177,21 +181,28 @@ class CartP extends StatelessWidget {
                         "total price": intl.NumberFormat("#,###").format(context
                             .read<AddtoCartlistProvider>()
                             .getTotalPrice()),
-                        "medicines": ""
+                        "location_id": jsonEncode(locations
+                            .where((e) => e.selected && e.id != 0)
+                            .firstOrNull)
                       },
-                      fieldsNum: {
-                        'id': 123,
-                        // 'location_id': 2,
-                      },
-                      medicines: [
-                        {'id': 1, 'quantity': 2},
-                        {'id': 2, 'quantity': 2},
-                      ],
-                      feeds: [
-                        {'id': 1, 'quantity': 1},
+                      fieldsArray: [
+                        {
+                          "medicines": [
+                            ...cartitems
+                                .where((e) =>
+                                    e.serviceType == ServiceType.medicine)
+                                .map((m) => {"ìd": m.id, "quantity": m.count})
+                          ]
+                        },
+                        {
+                          "feeds": [
+                            ...cartitems
+                                .where((e) => e.serviceType == ServiceType.feed)
+                                .map((m) => {"ìd": m.id, "quantity": m.count})
+                          ]
+                        },
                       ],
                     );
-                    print('object');
                   }),
               buttonMz(
                   padding: 4.0,

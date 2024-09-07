@@ -75,3 +75,12 @@ class LocationModel extends ChooseItemSModel {
             : DateTime.parse(data['delivery_time']));
   }
 }
+
+class AnimalCategories extends ChooseItemSModel {
+  int id;
+
+  AnimalCategories({required this.id, required super.label});
+  factory AnimalCategories.fromJson({data}) {
+    return AnimalCategories(id: data['id'], label: data['name']);
+  }
+}

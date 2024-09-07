@@ -2,7 +2,7 @@ import 'package:fit_medicine_02/controllers/functions/api_requests.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
 import 'package:fit_medicine_02/models/provider_itemwithboolean_model.dart';
-import 'package:fit_medicine_02/views/pages/register_veter_page.dart';
+import 'package:fit_medicine_02/views/pages/login_page.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
 import 'package:fit_medicine_02/views/widget/button_mz.dart';
 import 'package:fit_medicine_02/views/widget/textformfield_mz.dart';
@@ -30,7 +30,7 @@ class RegisterAsBreeder extends StatelessWidget {
           }),
       TextFormFieldModel(
           label: "رقم الهاتف",
-          textInputType: TextInputType.text,
+          textInputType: TextInputType.phone,
           suffixIcon: FontAwesomeIcons.mailchimp,
           controller: TextEditingController(),
           validate: (v) {
@@ -93,28 +93,34 @@ class RegisterAsBreeder extends StatelessWidget {
       }
       return null;
     };
-    List<ChooseItemSModel> animalsType = [
-      ChooseItemSModel(label: "اختر من القائمة"),
-      ChooseItemSModel(label: "ماعز"),
-      ChooseItemSModel(label: "خراف"),
-      ChooseItemSModel(label: "قطط"),
-      ChooseItemSModel(label: "كلاب")
+    List<AnimalCategories> animalsCategory = [
+      AnimalCategories(id: 0, label: "اختر من القائمة"),
     ];
     List<bool> wait = [false];
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<RegisterAsBreederInputProvider>(
-            create: (_) => RegisterAsBreederInputProvider(list)),
-        ChangeNotifierProvider<ChooseAnimalTypesProvider>(
-            create: (_) => ChooseAnimalTypesProvider(animalsType)),
-        ChangeNotifierProvider<WaitProvider>(create: (_) => WaitProvider(wait))
-      ],
-      child: FutureBuilder(
-          future: Future(() {}),
-          builder: (context, snapshots) {
-            return RegisterAsBreederP(routeName: routeName);
-          }),
-    );
+    return FutureBuilder(
+        future: Future(
+            () async => await apiGET(api: "/api/app/get_animal_categorey")),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator.adaptive(),
+              ),
+            );
+          } else {
+            for (var i in snapshot.data['data']['Animal_Categories']) {
+              animalsCategory.add(AnimalCategories.fromJson(data: i));
+            }
+            return MultiProvider(providers: [
+              ChangeNotifierProvider<RegisterAsBreederInputProvider>(
+                  create: (_) => RegisterAsBreederInputProvider(list)),
+              ChangeNotifierProvider<ChooseAnimalTypesProvider>(
+                  create: (_) => ChooseAnimalTypesProvider(animalsCategory)),
+              ChangeNotifierProvider<WaitProvider>(
+                  create: (_) => WaitProvider(wait))
+            ], child: RegisterAsBreederP(routeName: routeName));
+          }
+        });
   }
 }
 
@@ -126,17 +132,16 @@ class RegisterAsBreederP extends StatelessWidget {
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     List<TextFormFieldModel> inputfields =
         context.watch<RegisterAsBreederInputProvider>().list;
-
+    List<AnimalCategories> animalCategories =
+        context.watch<ChooseAnimalTypesProvider>().list;
     inputfields[2].suffixFunction = () => context
         .read<RegisterAsBreederInputProvider>()
         .togglePassword(inputfields[2]);
     inputfields[3].suffixFunction = () => context
         .read<RegisterAsBreederInputProvider>()
         .togglePassword(inputfields[3]);
-
-    List<ChooseItemSModel> animalsGroups =
-        context.watch<ChooseAnimalTypesProvider>().list;
-
+    bool wait = context.watch<WaitProvider>().list[0];
+    WaitProvider waitRead = context.read<WaitProvider>();
     return SafeArea(
         child: Directionality(
       textDirection:
@@ -206,13 +211,18 @@ class RegisterAsBreederP extends StatelessWidget {
                                                   lines: e.maxlines)),
                                         ],
                                       ),
-                                      animalCategory(
-                                          animalsGroups, context, inputfields),
+                                      animalCategory(animalCategories, context,
+                                          inputfields),
                                     ],
                                   ),
                                   const Divider(),
                                   sendFunction(
-                                      _formKey, inputfields, animalsGroups),
+                                      _formKey,
+                                      inputfields,
+                                      animalCategories,
+                                      waitRead,
+                                      wait,
+                                      context),
                                 ],
                               )),
                         ),
@@ -228,100 +238,112 @@ class RegisterAsBreederP extends StatelessWidget {
     ));
   }
 
-  Align sendFunction(
+  sendFunction(
       GlobalKey<FormState> _formKey,
       List<TextFormFieldModel> inputfields,
-      List<ChooseItemSModel> animalsGroups) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: buttonMz(
-          radius: 2.0,
-          width: 50.0,
-          label: "إرسال",
-          labelColor: Colors.white70,
-          icon: FontAwesomeIcons.floppyDisk,
-          color: Colors.orangeAccent,
-          iconColor: Colors.white38,
-          function: () async {
-            if (_formKey.currentState?.validate() == true) {
-              var fields = {
-                'name': inputfields[0].controller!.text,
-                'password': inputfields[2].controller!.text,
-                'confirm_password': inputfields[3].controller!.text,
-                'phone_number': inputfields[1].controller!.text,
-                'region': inputfields[4].controller!.text,
-              };
-              for (var i in animalsGroups.where((e) => e.selected)) {
-                fields['animal_categorie_id[${animalsGroups.indexOf(i)}]'] =
-                    (animalsGroups.indexOf(i) + 1).toString();
-              }
-              var headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'multipart/form-data',
-              };
+      List<ChooseItemSModel> animalsGroups,
+      WaitProvider waitRead,
+      bool wait,
+      ctx) {
+    return wait
+        ? const LinearProgressIndicator()
+        : Align(
+            alignment: Alignment.centerLeft,
+            child: buttonMz(
+                radius: 2.0,
+                width: 50.0,
+                label: "إرسال",
+                labelColor: Colors.white70,
+                icon: FontAwesomeIcons.floppyDisk,
+                color: Colors.orangeAccent,
+                iconColor: Colors.white38,
+                function: () async {
+                  if (_formKey.currentState?.validate() == true) {
+                    waitRead.togglepure(0);
 
-              var files;
-              //  = [
-              // {
-              //   'file': File(inputfields[5].controller!.text),
-              //   'fieldName': 'profile_picture',
-              // },
-              // ];
-              var response = await apiPost(
-                api: '/api/breeder/auth/register-breeder',
-                fields: fields,
-                files: files,
-                headers: headers,
-              );
-              print(response);
-            } else {
-              print('Form validation failed');
-            }
-          }),
-    );
-  }
+                    var fields = {
+                      'name': inputfields[0].controller!.text,
+                      'password': inputfields[2].controller!.text,
+                      'confirm_password': inputfields[3].controller!.text,
+                      'phone_number': inputfields[1].controller!.text,
+                      'region': inputfields[4].controller!.text,
+                    };
+                    for (var i in animalsGroups.where((e) => e.selected)) {
+                      fields['animal_categorie_id[${animalsGroups.indexOf(i)}]'] =
+                          (animalsGroups.indexOf(i) + 1).toString();
+                    }
+                    var headers = {
+                      'Accept': 'application/json',
+                      'Content-Type': 'multipart/form-data',
+                    };
 
-  Positioned animalCategory(List<ChooseItemSModel> animalsGroups,
-      BuildContext context, List<TextFormFieldModel> inputfields) {
-    return Positioned(
-      bottom: 10,
-      left: 10,
-      child: DropdownButton(
-          icon: const FaIcon(FontAwesomeIcons.dog),
-          value: animalsGroups[0],
-          items: [
-            DropdownMenuItem(
-              value: animalsGroups[0],
-              child: Text(animalsGroups[0].label),
-            ),
-            ...animalsGroups.sublist(1).map((e) => DropdownMenuItem(
-                value: e,
-                child: Row(
-                  children: [
-                    Checkbox(
-                        value: e.selected,
-                        onChanged: (x) {
-                          context
-                              .read<ChooseAnimalTypesProvider>()
-                              .chooseItemS(e);
-                          inputfields.last.controller!.clear();
-                          for (var i
-                              in animalsGroups.where((e) => e.selected)) {
-                            inputfields.last.controller!.text +=
-                                " ${i.label} ,";
-                          }
-                        }),
-                    Text(e.label),
-                  ],
-                )))
-          ],
-          onChanged: (x) {
-            context.read<ChooseAnimalTypesProvider>().chooseItemS(x!);
-            inputfields.last.controller!.clear();
-            for (var i in animalsGroups.where((e) => e.selected)) {
-              inputfields.last.controller!.text += " ${i.label} ,";
-            }
-          }),
-    );
+                    var resp = await apiPost(
+                      api: '/api/breeder/auth/register-breeder',
+                      fields: fields,
+                      headers: headers,
+                    );
+                    waitRead.togglepure(0);
+                    if (resp.containsKey('success') &&
+                        resp['success'] == true) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
+                        content: Text("تم التسجيل بنجاح"),
+                        elevation: 10,
+                        backgroundColor: Colors.lightGreen,
+                      ));
+                      Navigator.pushReplacementNamed(ctx, LoginPage.routeName);
+                    } else {
+                      try {
+                        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                          showCloseIcon: true,
+                          content: Text(resp['message']),
+                          elevation: 10,
+                        ));
+                      } catch (e) {}
+                    }
+                  }
+                }),
+          );
   }
+}
+
+Positioned animalCategory(List<AnimalCategories> animalsGroups,
+    BuildContext context, List<TextFormFieldModel> inputfields) {
+  return Positioned(
+    bottom: 10,
+    left: 10,
+    child: DropdownButton(
+        icon: const FaIcon(FontAwesomeIcons.dog),
+        value: animalsGroups[0],
+        items: [
+          DropdownMenuItem(
+            value: animalsGroups[0],
+            child: Text(animalsGroups[0].label),
+          ),
+          ...animalsGroups.sublist(1).map((e) => DropdownMenuItem(
+              value: e,
+              child: Row(
+                children: [
+                  Checkbox(
+                      value: e.selected,
+                      onChanged: (x) {
+                        context
+                            .read<ChooseAnimalTypesProvider>()
+                            .chooseItemS(e);
+                        inputfields.last.controller!.clear();
+                        for (var i in animalsGroups.where((e) => e.selected)) {
+                          inputfields.last.controller!.text += " ${i.label} ,";
+                        }
+                      }),
+                  Text(e.label),
+                ],
+              )))
+        ],
+        onChanged: (x) {
+          context.read<ChooseAnimalTypesProvider>().chooseItemS(x!);
+          inputfields.last.controller!.clear();
+          for (var i in animalsGroups.where((e) => e.selected)) {
+            inputfields.last.controller!.text += " ${i.label} ,";
+          }
+        }),
+  );
 }

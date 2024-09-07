@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:fit_medicine_02/controllers/providers/addtolist_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/theme_provider.dart';

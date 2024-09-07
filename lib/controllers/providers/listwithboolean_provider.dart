@@ -107,9 +107,9 @@ class RegisterAsBreederInputProvider
 }
 
 class ChooseAnimalTypesProvider
-    extends ListwithbooleanProvider<ChooseItemSModel> {
+    extends ListwithbooleanProvider<AnimalCategories> {
   @override
-  final List<ChooseItemSModel> list;
+  final List<AnimalCategories> list;
   ChooseAnimalTypesProvider(this.list) : super(list: list);
 }
 

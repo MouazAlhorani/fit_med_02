@@ -13,10 +13,11 @@ apiGET(
   try {
     connectType == 'http'
         ? resp = await http.get(Uri.http(serverIp, api, params), headers: {
-            'Accept': '*/*',
+            'Accept': 'application/json',
           }).timeout(Duration(seconds: 3))
-        : resp = await http
-            .get(Uri.https(serverIp, api, params), headers: {'Accept': '*/*'});
+        : resp = await http.get(Uri.https(serverIp, api, params),
+            headers: {'Accept': 'application/json'});
+    print(jsonDecode(resp.body));
     return jsonDecode(resp.body);
   } catch (e) {
     return {"error": e};
@@ -28,9 +29,7 @@ apiPost(
     List<Map<int, Map<String, String?>>>? files,
     required String api,
     Map<String, String>? fields,
-    List<Map<String, dynamic>>? medicines,
-    List<Map<String, dynamic>>? feeds,
-    Map<String, num>? fieldsNum,
+    List<Map<String, List>>? fieldsArray,
     Map<String, dynamic>? params,
     Map<String, String>? headers}) async {
   var request = http.MultipartRequest(
@@ -53,32 +52,16 @@ apiPost(
     request.fields.addAll(fields);
   }
 
-  if (medicines != null) {
-    request.fields['medicines'] = jsonEncode(medicines);
-  }
-  if (feeds != null) {
-    request.fields['feeds'] = jsonEncode(feeds);
-  }
-
-  if (fieldsNum != null) {
-    fieldsNum.forEach((key, value) {
-      request.fields[key] = value.toString();
-    });
-  }
-
-  if (files != null) {
-    for (var e in files) {
-      for (var i = 0; i < e.keys.first; i++) {
-        try {
-          request.files.add(await http.MultipartFile.fromPath(
-            e.values.first.keys.first,
-            e.values.first.values.first!,
-          ));
-        } catch (e) {}
-      }
-    }
-  }
-
+  request.fields.addAll({
+    "medicines": jsonEncode([
+      {"id": 1, "quantity": 2},
+      {"id": 2, "quantity": 2}
+    ]),
+    "feeds": jsonEncode([
+      {"id": 1, "quantity": 1}
+    ])
+  });
+  print("this is ${fieldsArray}");
   try {
     var response = await request.send();
     var responseData = await http.Response.fromStream(response);

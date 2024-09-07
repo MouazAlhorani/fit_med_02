@@ -294,13 +294,13 @@ class RegisterAsVeterP extends StatelessWidget {
                             Navigator.pushReplacementNamed(
                                 ctx, LoginPage.routeName);
                           } else {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              SnackBar(
+                            try {
+                              ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
                                 showCloseIcon: true,
                                 content: Text(resp['message']),
                                 elevation: 10,
-                              ),
-                            );
+                              ));
+                            } catch (e) {}
                           }
                         }
                       }),

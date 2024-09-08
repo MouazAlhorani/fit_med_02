@@ -2,6 +2,7 @@ import 'package:fit_medicine_02/controllers/providers/addtolist_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/theme_provider.dart';
 import 'package:fit_medicine_02/views/pages/cart.dart';
+import 'package:fit_medicine_02/views/pages/chatpage.dart';
 import 'package:fit_medicine_02/views/pages/homepage.dart';
 import 'package:fit_medicine_02/views/pages/interface.dart';
 import 'package:fit_medicine_02/views/pages/login_page.dart';
@@ -59,6 +60,7 @@ class FitMed extends StatelessWidget {
         Veters.routeName: (context) => const Veters(),
         DiseaseTreat.routeName: (context) => const DiseaseTreat(),
         Cart.routeName: (context) => const Cart(),
+        Chatpage.routeName: (context) => const Chatpage(),
         const ShowMedicine().routeName: (context) => const ShowMedicine(),
         const ShowFeed().routeName: (context) => const ShowFeed(),
       },

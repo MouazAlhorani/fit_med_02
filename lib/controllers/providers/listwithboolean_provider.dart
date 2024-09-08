@@ -33,6 +33,16 @@ class ListwithbooleanProvider<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  addline(TextFormFieldModel item) {
+    item.maxlines = item.maxlines! + 1;
+    notifyListeners();
+  }
+
+  removeline(TextFormFieldModel item) {
+    item.maxlines = item.maxlines! > 1 ? item.maxlines! - 1 : 1;
+    notifyListeners();
+  }
+
   chooseItemS(ChooseItemSModel item) {
     item.selected = !item.selected;
     notifyListeners();

@@ -76,7 +76,7 @@ class RegisterAsBreeder extends StatelessWidget {
       TextFormFieldModel(
           label: "الحيوان الذي تربيه",
           textInputType: TextInputType.multiline,
-          maxlines: 5,
+          maxlines: 1,
           suffixIcon: FontAwesomeIcons.dog,
           controller: TextEditingController(),
           readonly: true,
@@ -272,15 +272,10 @@ class RegisterAsBreederP extends StatelessWidget {
                       fields['animal_categorie_id[${animalsGroups.indexOf(i)}]'] =
                           (animalsGroups.indexOf(i) + 1).toString();
                     }
-                    var headers = {
-                      'Accept': 'application/json',
-                      'Content-Type': 'multipart/form-data',
-                    };
 
                     var resp = await apiPost(
                       api: '/api/breeder/auth/register-breeder',
                       fields: fields,
-                      headers: headers,
                     );
                     waitRead.togglepure(0);
                     if (resp.containsKey('success') &&
@@ -340,9 +335,19 @@ Positioned animalCategory(List<AnimalCategories> animalsGroups,
         ],
         onChanged: (x) {
           context.read<ChooseAnimalTypesProvider>().chooseItemS(x!);
-          inputfields.last.controller!.clear();
-          for (var i in animalsGroups.where((e) => e.selected)) {
-            inputfields.last.controller!.text += " ${i.label} ,";
+          if (x.selected == false) {
+            inputfields.last.controller!.text = inputfields
+                .last.controller!.text
+                .replaceAll("*> ${x.label} \n", '');
+            context
+                .read<RegisterAsBreederInputProvider>()
+                .removeline(inputfields.last);
+          } else {
+            inputfields.last.controller!.text += "*> ${x.label} \n";
+
+            context
+                .read<RegisterAsBreederInputProvider>()
+                .addline(inputfields.last);
           }
         }),
   );

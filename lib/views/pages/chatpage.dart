@@ -1,16 +1,21 @@
 import 'package:fit_medicine_02/controllers/functions/api_requests.dart';
+import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
+import 'package:fit_medicine_02/models/user_model.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Chatpage extends StatelessWidget {
   const Chatpage({super.key});
-  static String? routeName = "ChatPage";
+  static String routeName = "ChatPage";
 
   @override
   Widget build(BuildContext context) {
+    VeterModel reciver =
+        ModalRoute.of(context)!.settings.arguments as VeterModel;
     return FutureBuilder(
         future: Future(
-          () async => await apiGET(api: "/api/app/get-veterinarians"),
+          () async => await apiGET(api: "/api/app/get-messages/1"),
         ),
         builder: (_, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -37,6 +42,16 @@ class ChatpageP extends StatelessWidget {
   final Map<String, dynamic> snapdata;
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return SafeArea(
+        child: Directionality(
+            textDirection: context
+                    .watch<DirectionalityProvider>()
+                    .getDirection(sharedPref) ??
+                TextDirection.rtl,
+            child: Scaffold(
+              body: Center(
+                child: Text(snapdata.toString()),
+              ),
+            )));
   }
 }

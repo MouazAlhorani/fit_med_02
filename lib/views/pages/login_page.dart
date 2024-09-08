@@ -2,6 +2,7 @@ import 'package:fit_medicine_02/controllers/functions/login.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
 import 'package:fit_medicine_02/models/provider_itemwithboolean_model.dart';
+import 'package:fit_medicine_02/views/pages/homepage.dart';
 import 'package:fit_medicine_02/views/pages/register_breed_page.dart';
 import 'package:fit_medicine_02/views/pages/register_veter_page.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
@@ -21,7 +22,7 @@ class LoginPage extends StatelessWidget {
       TextFormFieldModel(
           label: "رقم الهاتف / الايميل",
           textInputType: TextInputType.text,
-          suffixIcon: FontAwesomeIcons.mailchimp,
+          suffixIcon: FontAwesomeIcons.user,
           controller: TextEditingController(),
           validate: (v) {
             if (v == null || v.trim().isEmpty) {
@@ -32,7 +33,7 @@ class LoginPage extends StatelessWidget {
       TextFormFieldModel(
           label: "كلمة المرور",
           textInputType: TextInputType.visiblePassword,
-          suffixIcon: FontAwesomeIcons.eye,
+          suffixIcon: FontAwesomeIcons.eyeSlash,
           maxlength: 8,
           controller: TextEditingController(),
           obscuretext: true,
@@ -45,9 +46,12 @@ class LoginPage extends StatelessWidget {
             return null;
           }),
     ];
+    List<bool> wait = [false];
     return MultiProvider(providers: [
       ChangeNotifierProvider<LogInInputProvider>(
-          create: (context) => LogInInputProvider(list))
+          create: (context) => LogInInputProvider(list)),
+      ChangeNotifierProvider<WaitProvider>(
+          create: (context) => WaitProvider(wait))
     ], child: LoginPageP(routeName: routeName));
   }
 }
@@ -57,6 +61,8 @@ class LoginPageP extends StatelessWidget {
   final String routeName;
   @override
   Widget build(BuildContext context) {
+    bool wait = context.watch<WaitProvider>().list[0];
+    WaitProvider waitRead = context.read<WaitProvider>();
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
     List<TextFormFieldModel> inputfields =
@@ -112,26 +118,27 @@ class LoginPageP extends StatelessWidget {
                                       submit: (x) async {
                                         if (_formKey.currentState?.validate() ==
                                             true) {
-                                          inputfields[0]
+                                          await login(
+                                              ctx: context,
+                                              email: inputfields[0]
+                                                      .controller!
+                                                      .text
+                                                      .contains("@")
+                                                  ? inputfields[0]
+                                                      .controller!
+                                                      .text
+                                                  : null,
+                                              phone: !inputfields[0]
+                                                      .controller!
+                                                      .text
+                                                      .contains("@")
+                                                  ? inputfields[0]
+                                                      .controller!
+                                                      .text
+                                                  : null,
+                                              password: inputfields[1]
                                                   .controller!
-                                                  .text
-                                                  .contains("@")
-                                              ? await login(
-                                                  ctx: context,
-                                                  email: inputfields[0]
-                                                      .controller!
-                                                      .text,
-                                                  password: inputfields[1]
-                                                      .controller!
-                                                      .text)
-                                              : await login(
-                                                  ctx: context,
-                                                  phone: inputfields[0]
-                                                      .controller!
-                                                      .text,
-                                                  password: inputfields[1]
-                                                      .controller!
-                                                      .text);
+                                                  .text);
                                         }
                                       },
                                       label: e.label,
@@ -143,25 +150,45 @@ class LoginPageP extends StatelessWidget {
                                       validate: e.validate,
                                       maxlength: e.maxlength)),
                                   const Divider(),
-                                  buttonMz(
-                                      labelsize: 25.0,
-                                      label: "دخول",
-                                      icon:
-                                          FontAwesomeIcons.arrowRightToBracket,
-                                      iconColor: Colors.orangeAccent.shade100,
-                                      function: () async {
-                                        if (_formKey.currentState?.validate() ==
-                                            true) {
-                                          await login(
-                                              ctx: context,
-                                              email: inputfields[0]
-                                                  .controller!
-                                                  .text,
-                                              password: inputfields[1]
-                                                  .controller!
-                                                  .text);
-                                        }
-                                      }),
+                                  wait
+                                      ? LinearProgressIndicator()
+                                      : buttonMz(
+                                          labelsize: 25.0,
+                                          label: "دخول",
+                                          icon: FontAwesomeIcons
+                                              .arrowRightToBracket,
+                                          iconColor:
+                                              Colors.orangeAccent.shade100,
+                                          function: () async {
+                                            if (_formKey.currentState
+                                                    ?.validate() ==
+                                                true) {
+                                              waitRead.togglepure(0);
+
+                                              await login(
+                                                  ctx: context,
+                                                  email: inputfields[0]
+                                                          .controller!
+                                                          .text
+                                                          .contains("@")
+                                                      ? inputfields[0]
+                                                          .controller!
+                                                          .text
+                                                      : null,
+                                                  phone: !inputfields[0]
+                                                          .controller!
+                                                          .text
+                                                          .contains("@")
+                                                      ? inputfields[0]
+                                                          .controller!
+                                                          .text
+                                                      : null,
+                                                  password: inputfields[1]
+                                                      .controller!
+                                                      .text);
+                                              waitRead.togglepure(0);
+                                            }
+                                          }),
                                   const SizedBox(height: 50),
                                   const Divider(),
                                   Text(

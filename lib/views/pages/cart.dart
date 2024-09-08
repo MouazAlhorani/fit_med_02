@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:fit_medicine_02/controllers/functions/api_requests.dart';
@@ -67,6 +66,7 @@ class CartP extends StatelessWidget {
     List<LocationModel> locations = context.watch<LocationProvider>().list;
     LocationProvider locationsRead = context.read<LocationProvider>();
     List<ServiceModel> cartitems = context.watch<AddtoCartlistProvider>().list;
+    AddtoCartlistProvider cartitemsRead = context.read<AddtoCartlistProvider>();
     return SafeArea(
         child: Directionality(
       textDirection:
@@ -80,11 +80,12 @@ class CartP extends StatelessWidget {
             ? emptyCart()
             : Column(
                 children: [
-                  Expanded(flex: 3, child: orderDetails(context)),
+                  Expanded(
+                      flex: 3, child: orderDetails(context, cartitemsRead)),
                   Expanded(
                       flex: 2,
-                      child: orderResultConfirm(
-                          locations, locationsRead, context, cartitems))
+                      child: orderResultConfirm(locations, locationsRead,
+                          context, cartitems, cartitemsRead))
                 ],
               ),
       ),
@@ -95,12 +96,14 @@ class CartP extends StatelessWidget {
       List<LocationModel> locations,
       LocationProvider locationsRead,
       BuildContext context,
-      List<ServiceModel> cartitems) {
+      List<ServiceModel> cartitems,
+      AddtoCartlistProvider cartitemsRead) {
     return ListView(
       children: [
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
+              color: Colors.white,
               border: Border.all(color: Colors.lightGreen),
               borderRadius: BorderRadius.circular(5)),
           child: Column(
@@ -170,39 +173,33 @@ class CartP extends StatelessWidget {
                   radius: 8.0,
                   color: Colors.deepOrange.shade300,
                   function: () async {
-                    await apiPost(
-                      api: "/api/order",
-                      fields: {
-                        "delivery_type":
-                            locations.firstWhere((r) => r.selected).label ==
-                                    "بدون توصيل"
-                                ? "non_delivery"
-                                : "delivery",
-                        "total price": intl.NumberFormat("#,###").format(context
-                            .read<AddtoCartlistProvider>()
-                            .getTotalPrice()),
-                        "location_id": jsonEncode(locations
-                            .where((e) => e.selected && e.id != 0)
-                            .firstOrNull)
-                      },
-                      fieldsArray: [
-                        {
-                          "medicines": [
-                            ...cartitems
-                                .where((e) =>
-                                    e.serviceType == ServiceType.medicine)
-                                .map((m) => {"ìd": m.id, "quantity": m.count})
-                          ]
-                        },
-                        {
-                          "feeds": [
-                            ...cartitems
-                                .where((e) => e.serviceType == ServiceType.feed)
-                                .map((m) => {"ìd": m.id, "quantity": m.count})
-                          ]
-                        },
-                      ],
-                    );
+                    await apiPost(api: "/api/order", optionalfields: {
+                      locations.firstWhere((r) => r.selected).id == 0
+                          ? null
+                          : "delivery_type": "delivery",
+                      locations.firstWhere((r) => r.selected).id == 0
+                              ? null
+                              : "location_id":
+                          "${locations.firstWhere((r) => r.selected).id}"
+                    }, fields: {
+                      "total_price":
+                          "${cartitemsRead.getTotalPrice() + locations.firstWhere((e) => e.selected).price}",
+                      "delivery_type": "non_delivery",
+                    }, fieldsArray: [
+                      {
+                        "medicines": [
+                          ...cartitems
+                              .where(
+                                  (e) => e.serviceType == ServiceType.medicine)
+                              .map((e) => {"id": e.id, "quantity": e.count}),
+                        ],
+                        "feeds": [
+                          ...cartitems
+                              .where((e) => e.serviceType == ServiceType.feed)
+                              .map((e) => {"id": e.id, "quantity": e.count}),
+                        ]
+                      }
+                    ]);
                   }),
               buttonMz(
                   padding: 4.0,
@@ -212,7 +209,7 @@ class CartP extends StatelessWidget {
                   radius: 8.0,
                   color: Colors.grey,
                   function: () {
-                    context.read<AddtoCartlistProvider>().reset();
+                    cartitemsRead.reset();
                   })
             ],
           ),
@@ -221,51 +218,56 @@ class CartP extends StatelessWidget {
     );
   }
 
-  Column orderDetails(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView(
-            children: [
-              ...context
-                  .watch<AddtoCartlistProvider>()
-                  .list
-                  .where((e) => e.serviceType == ServiceType.medicine)
-                  .map((e) {
-                TextEditingController countController = TextEditingController(
-                    text: context
-                        .read<AddtoCartlistProvider>()
-                        .getitemCount(e)
-                        .toString());
-                return productsList(e, context, countController);
-              }),
-              ...context
-                  .watch<AddtoCartlistProvider>()
-                  .list
-                  .where((e) => e.serviceType == ServiceType.feed)
-                  .map((e) {
-                TextEditingController countController = TextEditingController(
-                    text: context
-                        .read<AddtoCartlistProvider>()
-                        .getitemCount(e)
-                        .toString());
-                return productsList(e, context, countController);
-              }),
-            ],
+  Container orderDetails(
+      BuildContext context, AddtoCartlistProvider cartitemsRead) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              children: [
+                ...context
+                    .watch<AddtoCartlistProvider>()
+                    .list
+                    .where((e) => e.serviceType == ServiceType.medicine)
+                    .map((e) {
+                  TextEditingController countController = TextEditingController(
+                      text: context
+                          .read<AddtoCartlistProvider>()
+                          .getitemCount(e)
+                          .toString());
+                  return productsList(e, context, countController);
+                }),
+                ...context
+                    .watch<AddtoCartlistProvider>()
+                    .list
+                    .where((e) => e.serviceType == ServiceType.feed)
+                    .map((e) {
+                  TextEditingController countController = TextEditingController(
+                      text: context
+                          .read<AddtoCartlistProvider>()
+                          .getitemCount(e)
+                          .toString());
+                  return productsList(e, context, countController);
+                }),
+              ],
+            ),
           ),
-        ),
-        Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-              border: Border.all(color: Colors.lightGreen),
-              borderRadius: BorderRadius.circular(5)),
-          child: ListTile(
-            title: const Text("سعر المنتجات"),
-            trailing: Text(intl.NumberFormat("#,### ل س")
-                .format(context.read<AddtoCartlistProvider>().getTotalPrice())),
-          ),
-        )
-      ],
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.lightGreen),
+                borderRadius: BorderRadius.circular(5)),
+            child: ListTile(
+              title: const Text("سعر المنتجات"),
+              trailing: Text(intl.NumberFormat("#,### ل س")
+                  .format(cartitemsRead.getTotalPrice())),
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -273,90 +275,93 @@ class CartP extends StatelessWidget {
       TextEditingController countController) {
     return Stack(
       children: [
-        Column(
-          children: [
-            ListTile(
-              leading: SizedBox(
-                  height: 200,
-                  width: 100,
-                  child: Card(
-                    child: Center(
-                        child: e.image == null
-                            ? const FaIcon(FontAwesomeIcons.image)
-                            : Image.network(
-                                e.image!,
-                              )),
-                  )),
-              title: Text(
-                e.name,
-                style: ThemeM.theme(size: 15.0).textTheme.bodyLarge,
-              ),
-              subtitle: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      IconButton(
-                          onPressed: e.count == 1
-                              ? null
-                              : () {
-                                  context
-                                      .read<AddtoCartlistProvider>()
-                                      .removeProduct(item: e);
-                                },
-                          icon: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                  color: e.count == 1
-                                      ? Colors.grey
-                                      : Colors.orangeAccent.shade400,
-                                  borderRadius: BorderRadius.circular(4)),
-                              child: const FaIcon(
-                                FontAwesomeIcons.minus,
-                                color: Colors.white,
-                                size: 15,
-                              ))),
-                      SizedBox(
-                        width: 50,
-                        child: TextField(
-                          controller: countController,
-                          onChanged: (value) => context
-                              .read<AddtoCartlistProvider>()
-                              .setProductcount(
-                                  e, value, context, countController),
-                          style: ThemeM.theme().textTheme.bodySmall,
-                        ),
-                      ),
-                      IconButton(
-                          onPressed: () {
-                            context
+        Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              ListTile(
+                leading: SizedBox(
+                    height: 200,
+                    width: 100,
+                    child: Card(
+                      child: Center(
+                          child: e.image == null
+                              ? const FaIcon(FontAwesomeIcons.image)
+                              : Image.network(
+                                  e.image!,
+                                )),
+                    )),
+                title: Text(
+                  e.name,
+                  style: ThemeM.theme(size: 15.0).textTheme.bodyLarge,
+                ),
+                subtitle: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: e.count == 1
+                                ? null
+                                : () {
+                                    context
+                                        .read<AddtoCartlistProvider>()
+                                        .removeProduct(item: e);
+                                  },
+                            icon: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                    color: e.count == 1
+                                        ? Colors.grey
+                                        : Colors.orangeAccent.shade400,
+                                    borderRadius: BorderRadius.circular(4)),
+                                child: const FaIcon(
+                                  FontAwesomeIcons.minus,
+                                  color: Colors.white,
+                                  size: 15,
+                                ))),
+                        SizedBox(
+                          width: 50,
+                          child: TextField(
+                            controller: countController,
+                            onChanged: (value) => context
                                 .read<AddtoCartlistProvider>()
-                                .addProduct(item: e);
-                          },
-                          icon: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                  color: Colors.orangeAccent.shade400,
-                                  borderRadius: BorderRadius.circular(4)),
-                              child: const FaIcon(
-                                FontAwesomeIcons.plus,
-                                color: Colors.white,
-                                size: 15,
-                              ))),
-                    ],
-                  ),
-                  Text(e.price == null
-                      ? "__"
-                      : intl.NumberFormat("#,### ل س")
-                          .format(e.price! * e.count))
-                ],
+                                .setProductcount(
+                                    e, value, context, countController),
+                            style: ThemeM.theme().textTheme.bodySmall,
+                          ),
+                        ),
+                        IconButton(
+                            onPressed: () {
+                              context
+                                  .read<AddtoCartlistProvider>()
+                                  .addProduct(item: e);
+                            },
+                            icon: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                    color: Colors.orangeAccent.shade400,
+                                    borderRadius: BorderRadius.circular(4)),
+                                child: const FaIcon(
+                                  FontAwesomeIcons.plus,
+                                  color: Colors.white,
+                                  size: 15,
+                                ))),
+                      ],
+                    ),
+                    Text(e.price == null
+                        ? "__"
+                        : intl.NumberFormat("#,### ل س")
+                            .format(e.price! * e.count))
+                  ],
+                ),
               ),
-            ),
-            const Divider(
-              indent: 50,
-              endIndent: 10,
-            )
-          ],
+              const Divider(
+                indent: 50,
+                endIndent: 10,
+              )
+            ],
+          ),
         ),
         Positioned(
             left: -35,

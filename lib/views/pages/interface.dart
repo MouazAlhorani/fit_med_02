@@ -1,3 +1,4 @@
+import 'package:fit_medicine_02/controllers/functions/login.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/views/pages/homepage.dart';
 import 'package:fit_medicine_02/views/pages/login_page.dart';
@@ -38,7 +39,7 @@ class InterFace extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    SizedBox(height: 70),
+                    const SizedBox(height: 70),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Align(
@@ -61,18 +62,32 @@ class InterFace extends StatelessWidget {
                           label: "ابــــدأ",
                           icon: FontAwesomeIcons.house,
                           iconColor: Colors.orangeAccent,
-                          function: () {
-                            bool loggedin = false;
-                            sharedPref != null &&
-                                    sharedPref!.getStringList('userInfo') ==
-                                        null
-                                ? loggedin = false
-                                : loggedin = true;
-                            return loggedin
-                                ? Navigator.pushNamed(
-                                    context, HomePage.routeName)
-                                : Navigator.pushNamed(
-                                    context, LoginPage.routeName);
+                          function: () async {
+                            bool? loggedin = false;
+                            if (sharedPref != null &&
+                                sharedPref!.getStringList('userInfo') != null) {
+                              await login(
+                                  ctx: context,
+                                  email: sharedPref!
+                                          .getStringList('userInfo')![0]
+                                          .contains("@")
+                                      ? sharedPref!
+                                          .getStringList('userInfo')![0]
+                                      : null,
+                                  phone: !sharedPref!
+                                          .getStringList('userInfo')![0]
+                                          .contains("@")
+                                      ? sharedPref!
+                                          .getStringList('userInfo')![0]
+                                      : null,
+                                  password: sharedPref!
+                                      .getStringList('userInfo')![1]);
+                            }
+
+                            if (sharedPref == null ||
+                                sharedPref!.getStringList('userInfo') == null) {
+                              Navigator.pushNamed(context, LoginPage.routeName);
+                            }
                           }),
                     ),
                     SizedBox(height: 30),

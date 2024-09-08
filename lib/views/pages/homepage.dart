@@ -1,6 +1,5 @@
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
-import 'package:fit_medicine_02/controllers/static/userlogin_Info.dart';
 import 'package:fit_medicine_02/models/widgets_model/mainsection_model.dart';
 import 'package:fit_medicine_02/views/pages/drawer_mz.dart';
 import 'package:fit_medicine_02/views/pages/mainsections/disease_treat.dart';

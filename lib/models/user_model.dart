@@ -64,8 +64,7 @@ class VeterModel extends UserModel {
           : data['Specialization'],
       photo: data['photo'] == null || data['photo'] == "null"
           ? null
-          // : "http:\\$serverIp${data['photo']}",
-          : "http://192.168.50.41:8088/storage/Veterinarians/wXzAiU7LrPT4JiAxZLq2xvwae9YeX8R8.jpg",
+          : "http://$serverIp${data['photo']}",
       email: data['email'],
     );
   }

@@ -253,9 +253,6 @@ class RegisterAsVeterP extends StatelessWidget {
                           waitRead.togglepure(0);
                           Map resp = await apiPost(
                               api: "/api/auth/register-veterinarian",
-                              headers: {
-                                'Accept': 'application/json'
-                              },
                               fields: {
                                 'name': inputfields[0].controller!.text,
                                 'email': inputfields[1].controller!.text,

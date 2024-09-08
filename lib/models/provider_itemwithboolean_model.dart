@@ -14,7 +14,7 @@ class TextFormFieldModel extends ProviderItemwithboolean {
   final TextInputType? textInputType;
   FormFieldValidator? validate;
   Function()? suffixFunction;
-  final int? maxlines;
+  int? maxlines;
   final int? maxlength;
   TextFormFieldModel(
       {this.controller,

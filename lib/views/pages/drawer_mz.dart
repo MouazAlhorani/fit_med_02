@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:fit_medicine_02/controllers/functions/api_requests.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
 import 'package:fit_medicine_02/controllers/static/userlogin_Info.dart';
@@ -37,7 +38,6 @@ class DrawerMzP extends StatelessWidget {
     }
     List<bool> items = context.watch<ShowMoreLessProvider>().list;
     ShowMoreLessProvider itemsR = context.read<ShowMoreLessProvider>();
-    print(UserLoginInfo.get(sharedPref: sharedPref)[4]);
     return Drawer(
       width: MediaQuery.of(context).size.width - 75,
       child: ListView(
@@ -54,8 +54,8 @@ class DrawerMzP extends StatelessWidget {
             //main
             Column(children: [
               TweenAnimationBuilder(
-                  tween: Tween(begin: -1000.0, end: items[0] ? 0.0 : -1000.0),
-                  duration: const Duration(milliseconds: 500),
+                  tween: Tween(begin: 1000.0, end: items[0] ? 0.0 : 1000.0),
+                  duration: const Duration(milliseconds: 200),
                   builder: (context, value, child) {
                     return Transform.translate(
                         offset: Offset(value, 0),
@@ -98,8 +98,8 @@ class DrawerMzP extends StatelessWidget {
                             )));
                   }),
               TweenAnimationBuilder(
-                  tween: Tween(begin: -1300.0, end: items[0] ? 0.0 : -1300.0),
-                  duration: const Duration(milliseconds: 600),
+                  tween: Tween(begin: 1300.0, end: items[0] ? 0.0 : 1300.0),
+                  duration: const Duration(milliseconds: 300),
                   builder: (context, value, child) {
                     return Transform.translate(
                       offset: Offset(value, 0),
@@ -124,34 +124,33 @@ class DrawerMzP extends StatelessWidget {
                     );
                   }),
               TweenAnimationBuilder(
-                  tween: Tween(begin: -1300.0, end: items[0] ? 0.0 : -1300.0),
-                  duration: const Duration(milliseconds: 700),
+                  tween: Tween(begin: 1300.0, end: items[0] ? 0.0 : 1300.0),
+                  duration: const Duration(milliseconds: 400),
                   builder: (context, value, child) {
                     return Transform.translate(
-                      offset: Offset(value, 0),
-                      child: Container(
-                        margin: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                            border: Border.all(),
-                            borderRadius: BorderRadius.circular(5)),
-                        child: Column(children: [
-                          ListTile(
-                              leading: const ClipRRect(
-                                child: FaIcon(FontAwesomeIcons.listCheck),
-                              ),
-                              title: const Text("طلباتي"),
-                              trailing: IconButton(
-                                  onPressed: () => itemsR.choosepure(3),
-                                  icon: const FaIcon(
-                                    FontAwesomeIcons.arrowLeft,
-                                  ))),
-                        ]),
-                      ),
-                    );
+                        offset: Offset(value, 0),
+                        child: Container(
+                          margin: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                              border: Border.all(),
+                              borderRadius: BorderRadius.circular(5)),
+                          child: Column(children: [
+                            ListTile(
+                                leading: const ClipRRect(
+                                  child: FaIcon(FontAwesomeIcons.listCheck),
+                                ),
+                                title: const Text("طلباتي"),
+                                trailing: IconButton(
+                                    onPressed: () => itemsR.choosepure(3),
+                                    icon: const FaIcon(
+                                      FontAwesomeIcons.arrowLeft,
+                                    ))),
+                          ]),
+                        ));
                   }),
               TweenAnimationBuilder(
-                  tween: Tween(begin: -1300.0, end: items[0] ? 0.0 : -1300.0),
-                  duration: const Duration(milliseconds: 800),
+                  tween: Tween(begin: 1300.0, end: items[0] ? 0.0 : 1300.0),
+                  duration: const Duration(milliseconds: 500),
                   builder: (context, value, child) {
                     return Transform.translate(
                       offset: Offset(value, 0),
@@ -175,28 +174,42 @@ class DrawerMzP extends StatelessWidget {
                       ),
                     );
                   }),
-              Visibility(
-                visible: items[0],
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    buttonMz(
-                        label: "تسجيل خروج",
-                        color: Colors.white,
-                        radius: 5.0,
-                        function: () {
-                          UserLoginInfo.remove(
-                              sharedPref: sharedPref, ctx: context);
-                        }),
-                    buttonMz(
-                        label: "حذف الحساب",
-                        labelColor: Colors.red,
-                        radius: 5.0,
-                        function: () {}),
-                  ],
-                ),
-              ),
+              Column(children: [
+                const SizedBox(height: 20),
+                TweenAnimationBuilder(
+                    tween: Tween(begin: 1.0, end: items[0] ? 1.0 : 0.0),
+                    duration: const Duration(milliseconds: 600),
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: buttonMz(
+                            label: "تسجيل خروج",
+                            color: Colors.white,
+                            radius: 5.0,
+                            function: () async {
+                              await apiPost(
+                                  api: "/api/breeder/auth/logout-breeder");
+                              UserLoginInfo.remove(
+                                  sharedPref: sharedPref, ctx: context);
+                            }),
+                      );
+                    }),
+                TweenAnimationBuilder(
+                    tween: Tween(begin: 1.0, end: items[0] ? 1.0 : 0.0),
+                    duration: const Duration(milliseconds: 600),
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: buttonMz(
+                            label: "حذف الحساب",
+                            labelColor: Colors.red,
+                            radius: 5.0,
+                            function: () {}),
+                      );
+                    }),
+              ]),
             ]),
+
             //profile
 
             TweenAnimationBuilder(
@@ -233,51 +246,101 @@ class DrawerMzP extends StatelessWidget {
 
             //orders
 
-            TweenAnimationBuilder(
-                tween: Tween<double>(
-                    begin: -1000.0, end: items[3] ? 0.0 : -1000.0),
-                duration: const Duration(milliseconds: 500),
-                builder: (context, value, child) {
-                  return Transform.translate(
-                      offset: Offset(0.0, value),
-                      child: Column(
-                        children: [
-                          Container(
-                              width: double.infinity,
-                              height: 200,
-                              margin: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                  border: Border.all(),
-                                  borderRadius: BorderRadius.circular(5)),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: buttonMz(
-                                            label: "الطلبات الحالية",
-                                            color: Colors.orangeAccent.shade200,
-                                            labelColor: Colors.white,
-                                            labelsize: 15.0,
-                                            radius: 2.0,
-                                            function: () {}),
-                                      ),
-                                      Expanded(
-                                        child: buttonMz(
-                                            label: "الطلبات السابقة",
-                                            labelColor: Colors.white,
-                                            color: Colors.grey,
-                                            labelsize: 15.0,
-                                            radius: 2.0,
-                                            function: () {}),
+            Visibility(
+              visible: items[3],
+              child: TweenAnimationBuilder(
+                  tween: Tween<double>(
+                      begin: 1000.0, end: items[3] ? 0.0 : 1000.0),
+                  duration: const Duration(milliseconds: 500),
+                  builder: (context, value, child) {
+                    return Transform.translate(
+                        offset: Offset(value, 0.0),
+                        child: FutureBuilder(
+                            future: Future(() async =>
+                                await apiGET(api: "/api/get-my-order")),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child:
+                                        CircularProgressIndicator.adaptive());
+                              } else {
+                                return snapshot.data == null
+                                    ? DecoratedBox(
+                                        decoration: BoxDecoration(),
+                                        child: Text("لا يوجد طلبات"),
                                       )
-                                    ],
-                                  )
-                                ],
-                              ))
-                        ],
-                      ));
-                }),
+                                    : Container(
+                                        constraints:
+                                            BoxConstraints(minHeight: 300),
+                                        margin: EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.grey),
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.max,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: buttonMz(
+                                                        padding: 2.0,
+                                                        label: "الحالية",
+                                                        color: Colors
+                                                            .orangeAccent
+                                                            .shade200,
+                                                        labelColor:
+                                                            Colors.white,
+                                                        labelsize: 10.0,
+                                                        radius: 5.0,
+                                                        function: () {}),
+                                                  ),
+                                                  Expanded(
+                                                    child: buttonMz(
+                                                        padding: 2.0,
+                                                        label: "السابقة",
+                                                        labelColor:
+                                                            Colors.white,
+                                                        color: Colors.grey,
+                                                        labelsize: 10.0,
+                                                        radius: 5.0,
+                                                        function: () {}),
+                                                  )
+                                                ],
+                                              ),
+                                              ...snapshot.data['data']['orders']
+                                                  .map((e) => Column(
+                                                        children: [
+                                                          ListTile(
+                                                              leading: Text(e[
+                                                                  'order_number']),
+                                                              title: Text(e[
+                                                                  'location']),
+                                                              subtitle: Column(
+                                                                children: [
+                                                                  Text(
+                                                                      "${e['total_price']}"),
+                                                                  Text(
+                                                                      "${e['status']}")
+                                                                ],
+                                                              ),
+                                                              trailing: IconButton(
+                                                                  onPressed:
+                                                                      () {},
+                                                                  icon: FaIcon(
+                                                                      FontAwesomeIcons
+                                                                          .info))),
+                                                          Divider()
+                                                        ],
+                                                      ))
+                                            ]),
+                                      );
+                              }
+                            }));
+                  }),
+            ),
 
             //cotact
 

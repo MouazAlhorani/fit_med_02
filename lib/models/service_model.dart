@@ -118,46 +118,48 @@ class FeedModel extends ServiceModel {
 
 class DiseaseTreatMentModel extends ServiceModel {
   final String? details, causes, symptoms, prevention, type, treatment;
-  final MedicineModel? medicin;
-  DiseaseTreatMentModel(
-      {required super.id,
-      required super.name,
-      super.image,
-      this.causes,
-      this.symptoms,
-      this.prevention,
-      this.type,
-      this.treatment,
-      this.details,
-      this.medicin})
-      : super(serviceType: ServiceType.diseaseTreatment);
+  // final MedicineModel? medicin;
+  DiseaseTreatMentModel({
+    required super.id,
+    required super.name,
+    super.image,
+    this.causes,
+    this.symptoms,
+    this.prevention,
+    this.type,
+    this.treatment,
+    this.details,
+    // this.medicin,
+  }) : super(serviceType: ServiceType.diseaseTreatment);
 
   factory DiseaseTreatMentModel.local({required DiseaseTreatMentModel data}) {
     return DiseaseTreatMentModel(
-        id: data.id,
-        name: data.name,
-        image: data.image,
-        causes: data.causes,
-        symptoms: data.symptoms,
-        prevention: data.prevention,
-        type: data.type,
-        treatment: data.treatment,
-        details: data.details,
-        medicin: data.medicin);
+      id: data.id,
+      name: data.name,
+      image: data.image,
+      causes: data.causes,
+      symptoms: data.symptoms,
+      prevention: data.prevention,
+      type: data.type,
+      treatment: data.treatment,
+      details: data.details,
+      // medicin: data.medicin,
+    );
   }
   factory DiseaseTreatMentModel.fromjson({data}) {
     return DiseaseTreatMentModel(
-        id: data['id'],
-        name: data['name'],
-        image: data['image'] == null || data['image'] == "null"
-            ? null
-            : "http://$serverIp${data['image']}",
-        causes: data['causes'],
-        symptoms: data['symptoms'],
-        prevention: data['prevention'],
-        type: data['type'],
-        treatment: data['treatment'],
-        details: data['details'],
-        medicin: MedicineModel.fromjson(data: data['medicines']));
+      id: data['id'],
+      name: data['name'],
+      image: data['image'] == null || data['image'] == "null"
+          ? null
+          : "http://$serverIp${data['image']}",
+      causes: data['causes'],
+      symptoms: data['symptoms'],
+      prevention: data['prevention'],
+      type: data['type'],
+      treatment: data['treatment'],
+      details: data['details'],
+      // medicin: MedicineModel.fromjson(data: data['medicines']),
+    );
   }
 }

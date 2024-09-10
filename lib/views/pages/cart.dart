@@ -33,7 +33,7 @@ class Cart extends StatelessWidget {
               LocationModel(
                   id: 0, label: "بدون توصيل", price: 0, selected: true)
             ];
-
+            List<bool> wait = [false];
             return FutureBuilder(
                 future: Future(
                     () async => await apiGET(api: "/api/app/get-locations")),
@@ -50,7 +50,10 @@ class Cart extends StatelessWidget {
                     }
                     return MultiProvider(providers: [
                       ChangeNotifierProvider<LocationProvider>(
-                          create: (_) => LocationProvider(list))
+                        create: (_) => LocationProvider(list),
+                      ),
+                      ChangeNotifierProvider<WaitProvider>(
+                          create: (_) => WaitProvider(wait))
                     ], child: const CartP());
                   }
                 });
@@ -67,6 +70,8 @@ class CartP extends StatelessWidget {
     LocationProvider locationsRead = context.read<LocationProvider>();
     List<ServiceModel> cartitems = context.watch<AddtoCartlistProvider>().list;
     AddtoCartlistProvider cartitemsRead = context.read<AddtoCartlistProvider>();
+    bool wait = context.watch<WaitProvider>().list[0];
+    WaitProvider waitProvider = context.read<WaitProvider>();
     return SafeArea(
         child: Directionality(
       textDirection:
@@ -84,8 +89,8 @@ class CartP extends StatelessWidget {
                       flex: 3, child: orderDetails(context, cartitemsRead)),
                   Expanded(
                       flex: 2,
-                      child: orderResultConfirm(locations, locationsRead,
-                          context, cartitems, cartitemsRead))
+                      child: orderResultConfirm(wait, waitProvider, locations,
+                          locationsRead, context, cartitems, cartitemsRead))
                 ],
               ),
       ),
@@ -93,6 +98,8 @@ class CartP extends StatelessWidget {
   }
 
   ListView orderResultConfirm(
+      bool wait,
+      WaitProvider waitProvider,
       List<LocationModel> locations,
       LocationProvider locationsRead,
       BuildContext context,
@@ -165,52 +172,84 @@ class CartP extends StatelessWidget {
                       locations.firstWhere((e) => e.selected == true).price)),
                 ),
               ),
-              buttonMz(
-                  padding: 4.0,
-                  width: 200.0,
-                  label: "تأكيد عملية الشراء",
-                  labelColor: Colors.white,
-                  radius: 8.0,
-                  color: Colors.deepOrange.shade300,
-                  function: () async {
-                    await apiPost(api: "/api/order", optionalfields: {
-                      locations.firstWhere((r) => r.selected).id == 0
-                          ? null
-                          : "delivery_type": "delivery",
-                      locations.firstWhere((r) => r.selected).id == 0
+              wait
+                  ? const LinearProgressIndicator()
+                  : buttonMz(
+                      padding: 4.0,
+                      width: 200.0,
+                      label: "تأكيد عملية الشراء",
+                      labelColor: Colors.white,
+                      radius: 8.0,
+                      color: Colors.deepOrange.shade300,
+                      function: () async {
+                        waitProvider.togglepure(0);
+                        Map? resp =
+                            await apiPost(api: "/api/order", optionalfields: {
+                          locations.firstWhere((r) => r.selected).id == 0
                               ? null
-                              : "location_id":
-                          "${locations.firstWhere((r) => r.selected).id}"
-                    }, fields: {
-                      "total_price":
-                          "${cartitemsRead.getTotalPrice() + locations.firstWhere((e) => e.selected).price}",
-                      "delivery_type": "non_delivery",
-                    }, fieldsArray: [
-                      {
-                        "medicines": [
-                          ...cartitems
-                              .where(
-                                  (e) => e.serviceType == ServiceType.medicine)
-                              .map((e) => {"id": e.id, "quantity": e.count}),
-                        ],
-                        "feeds": [
-                          ...cartitems
-                              .where((e) => e.serviceType == ServiceType.feed)
-                              .map((e) => {"id": e.id, "quantity": e.count}),
-                        ]
-                      }
-                    ]);
-                  }),
-              buttonMz(
-                  padding: 4.0,
-                  width: 200.0,
-                  label: "حذف الطلب",
-                  labelColor: Colors.white,
-                  radius: 8.0,
-                  color: Colors.grey,
-                  function: () {
-                    cartitemsRead.reset();
-                  })
+                              : "delivery_type": "delivery",
+                          locations.firstWhere((r) => r.selected).id == 0
+                                  ? null
+                                  : "location_id":
+                              "${locations.firstWhere((r) => r.selected).id}"
+                        }, fields: {
+                          "total_price":
+                              "${cartitemsRead.getTotalPrice() + locations.firstWhere((e) => e.selected).price}",
+                          "delivery_type": "non_delivery",
+                        }, fieldsArray: [
+                          {
+                            "medicines": [
+                              ...cartitems
+                                  .where((e) =>
+                                      e.serviceType == ServiceType.medicine)
+                                  .map(
+                                      (e) => {"id": e.id, "quantity": e.count}),
+                            ],
+                            "feeds": [
+                              ...cartitems
+                                  .where(
+                                      (e) => e.serviceType == ServiceType.feed)
+                                  .map(
+                                      (e) => {"id": e.id, "quantity": e.count}),
+                            ]
+                          }
+                        ]);
+                        if (resp != null &&
+                            resp.containsKey("success") &&
+                            resp['success'] == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              showCloseIcon: true,
+                              content: Text(
+                                  "تم تسجيل طلبك بنجاح .. يمكنك مراجعة طلباتك من قائمة طلباتي"),
+                              elevation: 10,
+                            ),
+                          );
+                          cartitemsRead.reset();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              showCloseIcon: true,
+                              content: Text("حدث خطأ ما"),
+                              elevation: 10,
+                            ),
+                          );
+                        }
+                        waitProvider.togglepure(0);
+                      },
+                    ),
+              wait
+                  ? const SizedBox()
+                  : buttonMz(
+                      padding: 4.0,
+                      width: 200.0,
+                      label: "حذف الطلب",
+                      labelColor: Colors.white,
+                      radius: 8.0,
+                      color: Colors.grey,
+                      function: () {
+                        cartitemsRead.reset();
+                      })
             ],
           ),
         )

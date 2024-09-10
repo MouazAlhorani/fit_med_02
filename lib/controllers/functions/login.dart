@@ -13,39 +13,39 @@ login({String? phone, email, password, required ctx}) async {
       fields: email == null
           ? {"phone_number": phone!, "password": password}
           : {'email': email, "password": password});
-  if (resp != null) {
-    if (resp.containsKey('success') && resp['success'] == true) {
-      await UserLoginInfo.save(
-          sharedPref: sharedPref,
-          userkey: phone ?? email,
-          password: password,
-          token: resp['data']['data']['auth_token'],
-          usertype: resp['data']['data']['user_type'],
-          user: jsonEncode(resp['data']['data']['user']));
-      Navigator.pushNamed(ctx, HomePage.routeName);
-    } else {
-      UserLoginInfo.remove(sharedPref: sharedPref, ctx: ctx);
-      if (email != null &&
-          resp.containsKey("message") &&
-          resp['message'].contains('must be a valid email address')) {
-        print(resp['message']);
+  if (resp != null && resp.containsKey('success') && resp['success'] == true) {
+    await UserLoginInfo.save(
+        sharedPref: sharedPref,
+        userkey: phone ?? email,
+        password: password,
+        token: resp['data']['data']['auth_token'],
+        usertype: resp['data']['data']['user_type'],
+        user: jsonEncode(resp['data']['data']['user']),
+        id: "${resp['data']['data']['user']['id']}");
+    Navigator.pushNamed(ctx, HomePage.routeName);
+  } else {
+    UserLoginInfo.remove(sharedPref: sharedPref, ctx: ctx);
+    if (email != null &&
+        resp != null &&
+        resp.containsKey("message") &&
+        resp['message'].contains('must be a valid email address')) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(
+          showCloseIcon: true,
+          content: Text("أدخل صيغة بريد الكتروني صحيحة"),
+          elevation: 10,
+        ),
+      );
+    } else if (resp != null && resp.containsKey('data')) {
+      if (resp['data']['status_code'] == 404) {
+        UserLoginInfo.remove(sharedPref: sharedPref, ctx: ctx);
         ScaffoldMessenger.of(ctx).showSnackBar(
           const SnackBar(
             showCloseIcon: true,
-            content: Text("أدخل صيغة بريد الكتروني صحيحة"),
+            content: Text("اسم المستخدم او كلمة المرور غير صحيحة"),
             elevation: 10,
           ),
         );
-      } else if (resp.containsKey('data')) {
-        if (resp['data']['status_code'] == 404) {
-          ScaffoldMessenger.of(ctx).showSnackBar(
-            const SnackBar(
-              showCloseIcon: true,
-              content: Text("اسم المستخدم او كلمة المرور غير صحيحة"),
-              elevation: 10,
-            ),
-          );
-        }
       }
     }
   }

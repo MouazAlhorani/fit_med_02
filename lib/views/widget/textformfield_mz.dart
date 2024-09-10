@@ -21,23 +21,30 @@ textFormFieldMZ(
       // height: 60.0,
       width: width,
       child: TextFormField(
+        cursorColor: Colors.black54,
         maxLength: maxlength,
         onFieldSubmitted: submit,
         maxLines: lines ?? 1,
         readOnly: readonly ?? false,
         validator: validate,
         textAlign: TextAlign.center,
-        style:
-            ThemeM.theme(color: Colors.black, size: 20.0).textTheme.bodyMedium,
+        style: ThemeM.theme(color: Colors.black87, size: 20.0)
+            .textTheme
+            .bodyMedium,
         keyboardType: keyboardtype,
         controller: controller,
         obscureText: obscuretext ?? false,
         decoration: InputDecoration(
+            errorStyle: TextStyle(color: Colors.red),
+            enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54)),
+            helperStyle: TextStyle(color: Colors.black),
             suffix: IconButton(
                 onPressed: suffixFunction,
                 icon: FaIcon(
                   suffixIcon,
-                  size: 15,
+                  size: 25,
+                  color: Colors.black,
                 )),
             label: Text(
               label,

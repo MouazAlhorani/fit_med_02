@@ -124,15 +124,8 @@ apiPost(
     var response = await request.send();
     var responseData = await http.Response.fromStream(response);
     var result = jsonDecode(responseData.body);
-    if (result != null && result['message'] == "Unauthenticated") {
-      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-        showCloseIcon: true,
-        content: Text("أعد تسجيل الدخول"),
-        elevation: 10,
-      ));
-    } else {
-      return result;
-    }
+    print(result);
+    return result;
   } on SocketException {
     ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
       showCloseIcon: true,

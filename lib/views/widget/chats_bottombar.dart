@@ -8,14 +8,27 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 class BottombarMz extends StatelessWidget {
-  const BottombarMz({super.key, required this.routeMame, required this.list});
+  const BottombarMz({super.key, required this.routeMame});
   final String routeMame;
-  final List<BottomBarItem> list;
   @override
   Widget build(BuildContext context) {
+    List<BottomBarItem> list = [
+      BottomBarItem(
+        label: "الرئيسية",
+        icon: FontAwesomeIcons.house,
+        routeName: HomePage.routeName,
+        selected: true,
+      ),
+      BottomBarItem(label: "بحث", icon: FontAwesomeIcons.magnifyingGlass),
+      BottomBarItem(
+        label: "المحادثات",
+        icon: FontAwesomeIcons.commentDots,
+        routeName: Conversations.routeName,
+      ),
+      BottomBarItem(label: "إضافة منشور", icon: FontAwesomeIcons.clipboard)
+    ];
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<MzProvider>(create: (_) => MzProvider({})),
         ChangeNotifierProvider<BottomBarProvider>(
             create: (_) => BottomBarProvider(list))
       ],
@@ -44,17 +57,16 @@ class BottomBarP extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             ...items.map((e) => TweenAnimationBuilder(
-                  tween: Tween(begin: 1.0, end: e.selected ? 1.4 : 1.0),
+                  tween: Tween(begin: 1.0, end: e.selected ? 1.3 : 1.0),
                   duration: const Duration(milliseconds: 300),
                   builder: (context, value, child) => GestureDetector(
-                    onTap: e.function ??
-                        () {
-                          itemsRead.chooseItemformgroup(e,
-                              routeName: HomePage.routeName, ctx: context);
-                          if (e.routeName != null && e.routeName != routeName) {
-                            Navigator.pushNamed(context, e.routeName!);
-                          }
-                        },
+                    onTap: () {
+                      itemsRead.chooseItemformgroup(e,
+                          routeName: HomePage.routeName, ctx: context);
+                      if (e.routeName != null && e.routeName != routeName) {
+                        Navigator.pushNamed(context, e.routeName!);
+                      }
+                    },
                     child: Card(
                       elevation: 0,
                       color: Colors.white,
@@ -65,7 +77,7 @@ class BottomBarP extends StatelessWidget {
                             scale: value,
                             child: FaIcon(
                               e.icon,
-                              size: 20,
+                              size: 15,
                               color: e.selected ? Colors.green : Colors.grey,
                             ),
                           ),
@@ -88,37 +100,3 @@ class BottomBarP extends StatelessWidget {
     );
   }
 }
-
-List<BottomBarItem> mainlist = [
-  BottomBarItem(
-    label: "الرئيسية",
-    icon: FontAwesomeIcons.house,
-    routeName: HomePage.routeName,
-    selected: true,
-  ),
-  BottomBarItem(label: "بحث", icon: FontAwesomeIcons.magnifyingGlass),
-  BottomBarItem(
-    label: "المحادثات",
-    icon: FontAwesomeIcons.commentDots,
-    routeName: Conversations.routeName,
-  ),
-  BottomBarItem(label: "إضافة منشور", icon: FontAwesomeIcons.clipboard)
-];
-
-List<BottomBarItem> chatlist = [
-  BottomBarItem(
-      label: "المحادثات",
-      icon: FontAwesomeIcons.commentDots,
-      selected: true,
-      function: () {}),
-  BottomBarItem(
-    label: "الأشخاص",
-    icon: FontAwesomeIcons.usersLine,
-    function: () {},
-  ),
-  BottomBarItem(
-    label: "المجموعات",
-    icon: FontAwesomeIcons.peopleRoof,
-    function: () {},
-  )
-];

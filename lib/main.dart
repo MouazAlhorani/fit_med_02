@@ -1,6 +1,7 @@
 import 'package:fit_medicine_02/controllers/providers/addtolist_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/theme_provider.dart';
+import 'package:fit_medicine_02/views/chats/chats_p.dart';
 import 'package:fit_medicine_02/views/pages/cart.dart';
 import 'package:fit_medicine_02/views/pages/chatpage.dart';
 import 'package:fit_medicine_02/views/pages/homepage.dart';
@@ -12,6 +13,7 @@ import 'package:fit_medicine_02/views/pages/mainsections/medicine.dart';
 import 'package:fit_medicine_02/views/pages/mainsections/veters.dart';
 import 'package:fit_medicine_02/views/pages/register_breed_page.dart';
 import 'package:fit_medicine_02/views/pages/register_veter_page.dart';
+import 'package:fit_medicine_02/views/pages/show_disease.dart';
 import 'package:fit_medicine_02/views/pages/show_product.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +26,7 @@ main() {
         ChangeNotifierProvider<DirectionalityProvider>(
             create: (_) => DirectionalityProvider()),
         ChangeNotifierProvider<AddtoCartlistProvider>(
-            create: (_) => AddtoCartlistProvider(list: []))
+            create: (_) => AddtoCartlistProvider(list: [])),
       ],
       child: FutureBuilder(
           future: Future(
@@ -43,11 +45,8 @@ class FitMed extends StatelessWidget {
         : null;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      themeMode:
-          theme == null || theme == "light" ? ThemeMode.light : ThemeMode.dark,
-      theme: theme == null || theme == "light"
-          ? ThemeData.light()
-          : ThemeData.dark(),
+      themeMode: ThemeMode.light,
+      theme: ThemeData.light(),
       initialRoute: '/',
       routes: {
         '/': (context) => const InterFace(),
@@ -63,6 +62,8 @@ class FitMed extends StatelessWidget {
         Chatpage.routeName: (context) => const Chatpage(),
         const ShowMedicine().routeName: (context) => const ShowMedicine(),
         const ShowFeed().routeName: (context) => const ShowFeed(),
+        ShowDisease.routeName: (context) => const ShowDisease(),
+        Conversations.routeName: (context) => const Conversations(),
       },
     );
   }

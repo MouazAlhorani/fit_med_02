@@ -33,7 +33,7 @@ class TextFormFieldModel extends ProviderItemwithboolean {
 class ChooseItemSModel extends ProviderItemwithboolean {
   final String label;
   final IconData? icon;
-  Function()? function;
+  var function;
   bool selected = false;
   ChooseItemSModel({
     required this.label,

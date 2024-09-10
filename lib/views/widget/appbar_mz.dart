@@ -11,7 +11,7 @@ appBarMZ(title, routeName) {
       child: Hero(
         tag: routeName,
         child: Text(
-          title,
+          "$title",
           style: ThemeM.theme().textTheme.titleSmall,
         ),
       ),

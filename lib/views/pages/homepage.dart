@@ -90,7 +90,7 @@ class HomePageP extends StatelessWidget {
                                   Positioned(
                                       bottom: 5,
                                       child: Container(
-                                        padding: EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(10),
                                         width:
                                             MediaQuery.of(context).size.width -
                                                 40,
@@ -139,6 +139,7 @@ class HomePageP extends StatelessWidget {
                       height: 50,
                       child: BottombarMz(
                         routeMame: HomePage.routeName,
+                        list: mainlist,
                       ))
                 ],
               ),

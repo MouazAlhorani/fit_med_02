@@ -129,7 +129,9 @@ class RegisterAsBreederP extends StatelessWidget {
   final String routeName;
   @override
   Widget build(BuildContext context) {
-    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    bool wait = context.watch<WaitProvider>().list[0];
+    WaitProvider waitProvider = context.read<WaitProvider>();
+    GlobalKey<FormState> formKey = GlobalKey<FormState>();
     List<TextFormFieldModel> inputfields =
         context.watch<RegisterAsBreederInputProvider>().list;
     List<AnimalCategories> animalCategories =
@@ -140,8 +142,6 @@ class RegisterAsBreederP extends StatelessWidget {
     inputfields[3].suffixFunction = () => context
         .read<RegisterAsBreederInputProvider>()
         .togglePassword(inputfields[3]);
-    bool wait = context.watch<WaitProvider>().list[0];
-    WaitProvider waitRead = context.read<WaitProvider>();
     return SafeArea(
         child: Directionality(
       textDirection:
@@ -179,7 +179,7 @@ class RegisterAsBreederP extends StatelessWidget {
                               borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(20))),
                           child: Form(
-                              key: _formKey,
+                              key: formKey,
                               child: Column(
                                 children: [
                                   Hero(
@@ -208,7 +208,16 @@ class RegisterAsBreederP extends StatelessWidget {
                                                   obscuretext: e.obscuretext,
                                                   validate: e.validate,
                                                   readonly: e.readonly,
-                                                  lines: e.maxlines)),
+                                                  lines: e.maxlines,
+                                                  submit: (x) {
+                                                    return sendFunction(
+                                                        formKey,
+                                                        inputfields,
+                                                        animalCategories,
+                                                        waitProvider,
+                                                        wait,
+                                                        context);
+                                                  })),
                                         ],
                                       ),
                                       animalCategory(animalCategories, context,
@@ -217,10 +226,10 @@ class RegisterAsBreederP extends StatelessWidget {
                                   ),
                                   const Divider(),
                                   sendFunction(
-                                      _formKey,
+                                      formKey,
                                       inputfields,
                                       animalCategories,
-                                      waitRead,
+                                      waitProvider,
                                       wait,
                                       context),
                                 ],
@@ -239,7 +248,7 @@ class RegisterAsBreederP extends StatelessWidget {
   }
 
   sendFunction(
-      GlobalKey<FormState> _formKey,
+      GlobalKey<FormState> formKey,
       List<TextFormFieldModel> inputfields,
       List<ChooseItemSModel> animalsGroups,
       WaitProvider waitRead,
@@ -258,7 +267,7 @@ class RegisterAsBreederP extends StatelessWidget {
                 color: Colors.orangeAccent,
                 iconColor: Colors.white38,
                 function: () async {
-                  if (_formKey.currentState?.validate() == true) {
+                  if (formKey.currentState?.validate() == true) {
                     waitRead.togglepure(0);
 
                     var fields = {
@@ -268,15 +277,18 @@ class RegisterAsBreederP extends StatelessWidget {
                       'phone_number': inputfields[1].controller!.text,
                       'region': inputfields[4].controller!.text,
                     };
-                    for (var i in animalsGroups.where((e) => e.selected)) {
+                    for (var i in animalsGroups.where(
+                        (e) => e.selected && animalsGroups.indexOf(e) != 0)) {
                       fields['animal_categorie_id[${animalsGroups.indexOf(i)}]'] =
-                          (animalsGroups.indexOf(i) + 1).toString();
+                          (animalsGroups.indexOf(i)).toString();
                     }
 
                     var resp = await apiPost(
+                      ctx: ctx,
                       api: '/api/breeder/auth/register-breeder',
                       fields: fields,
                     );
+                    waitRead.togglepure(0);
                     waitRead.togglepure(0);
                     if (resp.containsKey('success') &&
                         resp['success'] == true) {
@@ -293,6 +305,8 @@ class RegisterAsBreederP extends StatelessWidget {
                           content: Text(resp['message']),
                           elevation: 10,
                         ));
+                        Navigator.pushReplacementNamed(
+                            ctx, LoginPage.routeName);
                       } catch (e) {}
                     }
                   }
@@ -315,27 +329,14 @@ Positioned animalCategory(List<AnimalCategories> animalsGroups,
             child: Text(animalsGroups[0].label),
           ),
           ...animalsGroups.sublist(1).map((e) => DropdownMenuItem(
-              value: e,
-              child: Row(
-                children: [
-                  Checkbox(
-                      value: e.selected,
-                      onChanged: (x) {
-                        context
-                            .read<ChooseAnimalTypesProvider>()
-                            .chooseItemS(e);
-                        inputfields.last.controller!.clear();
-                        for (var i in animalsGroups.where((e) => e.selected)) {
-                          inputfields.last.controller!.text += " ${i.label} ,";
-                        }
-                      }),
-                  Text(e.label),
-                ],
-              )))
+                value: e,
+                child: Text(e.label),
+              ))
         ],
         onChanged: (x) {
           context.read<ChooseAnimalTypesProvider>().chooseItemS(x!);
-          if (x.selected == false) {
+          if (animalsGroups.indexOf(x) == 0) {
+          } else if (x.selected == false) {
             inputfields.last.controller!.text = inputfields
                 .last.controller!.text
                 .replaceAll("*> ${x.label} \n", '');
@@ -344,7 +345,6 @@ Positioned animalCategory(List<AnimalCategories> animalsGroups,
                 .removeline(inputfields.last);
           } else {
             inputfields.last.controller!.text += "*> ${x.label} \n";
-
             context
                 .read<RegisterAsBreederInputProvider>()
                 .addline(inputfields.last);

@@ -33,7 +33,7 @@ class RegisterAsVeter extends StatelessWidget {
       TextFormFieldModel(
         label: "الايميل",
         textInputType: TextInputType.emailAddress,
-        suffixIcon: FontAwesomeIcons.mailchimp,
+        suffixIcon: FontAwesomeIcons.envelope,
         controller: TextEditingController(),
         validate: (v) {
           if (v == null || v.trim().isEmpty) {
@@ -123,8 +123,8 @@ class RegisterAsVeterP extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool wait = context.watch<WaitProvider>().list[0];
-    WaitProvider waitRead = context.read<WaitProvider>();
-    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    WaitProvider waitProvider = context.read<WaitProvider>();
+    GlobalKey<FormState> formKey = GlobalKey<FormState>();
     List<TextFormFieldModel> inputfields =
         context.watch<RegisterAsVeteInputProvider>().list;
     inputfields[2].suffixFunction = () => context
@@ -141,7 +141,7 @@ class RegisterAsVeterP extends StatelessWidget {
         .pickfile(item: inputfields[6], ctx: context);
     inputfields[7].suffixFunction = () => context
         .read<RegisterAsVeteInputProvider>()
-        .pickfile(item: inputfields[7], ctx: context);
+        .pickfile(item: inputfields[7], ctx: context, multifiles: true);
     return SafeArea(
         child: Directionality(
       textDirection:
@@ -179,7 +179,7 @@ class RegisterAsVeterP extends StatelessWidget {
                               borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(20))),
                           child: Form(
-                              key: _formKey,
+                              key: formKey,
                               child: Column(
                                 children: [
                                   Hero(
@@ -202,17 +202,18 @@ class RegisterAsVeterP extends StatelessWidget {
                                       validate: e.validate,
                                       maxlength: e.maxlength,
                                       readonly: e.readonly,
+                                      lines: e.maxlines,
                                       submit: (x) {
                                         return sendFunction(
-                                            _formKey,
+                                            formKey,
                                             inputfields,
-                                            waitRead,
+                                            waitProvider,
                                             wait,
                                             context);
                                       })),
                                   const Divider(),
-                                  sendFunction(_formKey, inputfields, waitRead,
-                                      wait, context),
+                                  sendFunction(formKey, inputfields,
+                                      waitProvider, wait, context),
                                 ],
                               )),
                         ),
@@ -229,7 +230,7 @@ class RegisterAsVeterP extends StatelessWidget {
   }
 
   sendFunction(
-      GlobalKey<FormState> _formKey,
+      GlobalKey<FormState> formKey,
       List<TextFormFieldModel> inputfields,
       WaitProvider waitRead,
       bool wait,
@@ -249,9 +250,32 @@ class RegisterAsVeterP extends StatelessWidget {
                 function: wait
                     ? null
                     : () async {
-                        if (_formKey.currentState?.validate() == true) {
+                        if (formKey.currentState?.validate() == true) {
+                          List<Map<int, Map<String, String?>>>? multifiles = [];
+                          for (var i = 0;
+                              i <
+                                  inputfields[7]
+                                          .controller!
+                                          .text
+                                          .split("(;)")
+                                          .length -
+                                      1;
+                              i++) {
+                            multifiles.add(
+                              {
+                                1: {
+                                  'experience_certificate_image[]':
+                                      inputfields[7]
+                                          .controller!
+                                          .text
+                                          .split("(;)")[i]
+                                }
+                              },
+                            );
+                          }
                           waitRead.togglepure(0);
                           Map resp = await apiPost(
+                              ctx: ctx,
                               api: "/api/auth/register-veterinarian",
                               fields: {
                                 'name': inputfields[0].controller!.text,
@@ -272,12 +296,7 @@ class RegisterAsVeterP extends StatelessWidget {
                                 {
                                   1: {'photo': inputfields[6].controller!.text}
                                 },
-                                {
-                                  3: {
-                                    'experience_certificate_image[]':
-                                        inputfields[7].controller!.text
-                                  }
-                                }
+                                ...multifiles
                               ]);
                           waitRead.togglepure(0);
                           if (resp.containsKey('success') &&

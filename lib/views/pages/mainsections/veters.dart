@@ -7,6 +7,7 @@ import 'package:fit_medicine_02/views/theme/theme.dart';
 import 'package:fit_medicine_02/views/widget/appbar_mz.dart';
 import 'package:fit_medicine_02/views/widget/bottombar_mz.dart';
 import 'package:fit_medicine_02/views/widget/button_mz.dart';
+import 'package:fit_medicine_02/views/widget/cardOne.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -76,7 +77,10 @@ class VetersP extends StatelessWidget {
                             )),
                   SizedBox(
                     height: 50,
-                    child: BottombarMz(routeMame: Veters.routeName),
+                    child: BottombarMz(
+                      routeMame: Veters.routeName,
+                      list: mainlist,
+                    ),
                   )
                 ]))));
   }
@@ -85,89 +89,30 @@ class VetersP extends StatelessWidget {
     return Column(
       children: [
         ...data.map((e) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Row(children: [
-                SizedBox(
-                    height: 130,
-                    width: 130,
-                    child: Card(
-                        child: Center(
-                            child: e.photo == null
-                                ? const FaIcon(FontAwesomeIcons.userDoctor)
-                                : Image.network(e.photo!)))),
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 130),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: Text(
-                            e.username,
-                            style:
-                                ThemeM.theme(size: 22.0).textTheme.titleLarge,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const FaIcon(FontAwesomeIcons.userDoctor),
-                                  const SizedBox(width: 20),
-                                  Text(
-                                    e.specialization ?? '',
-                                    style: ThemeM.theme(
-                                            color: Colors.black, size: 16.0)
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 15),
-                              Row(
-                                children: [
-                                  const FaIcon(FontAwesomeIcons.mapLocation),
-                                  const SizedBox(width: 20),
-                                  Text(
-                                    e.address ?? '',
-                                    style: ThemeM.theme(
-                                            color: Colors.black, size: 16.0)
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ]),
-                ),
-              ]),
-              Align(
-                alignment: Alignment.bottomLeft,
+          return cardOne(
+              photo: e.photo,
+              imageIcon: FontAwesomeIcons.userDoctor,
+              mainlabel: e.username,
+              firstRowIcon: FontAwesomeIcons.userDoctor,
+              firstRowText: e.specialization,
+              secondRowIcon: FontAwesomeIcons.mapLocationDot,
+              secondRowText: e.address,
+              button: Align(
+                alignment: Alignment.centerLeft,
                 child: buttonMz(
+                    width: 130.0,
                     label: "تواصل مع الطبيب",
-                    color: Colors.lightGreen.shade100,
-                    radius: 5.0,
-                    labelsize: 10.0,
-                    width: 100.0,
+                    labelsize: 14.0,
                     icon: FontAwesomeIcons.commentDots,
-                    iconColor: Colors.green,
+                    color: Colors.grey[200],
+                    iconColor: Colors.green[200],
+                    elevation: 2.0,
+                    radius: 4.0,
                     function: () {
                       Navigator.pushNamed(context, Chatpage.routeName,
                           arguments: e);
                     }),
-              ),
-              const Divider(),
-            ],
-          );
+              ));
         })
       ],
     );

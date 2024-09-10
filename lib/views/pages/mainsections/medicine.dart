@@ -80,7 +80,10 @@ class MedicineP extends StatelessWidget {
                             )),
                   SizedBox(
                     height: 50,
-                    child: BottombarMz(routeMame: Medicine.routeName),
+                    child: BottombarMz(
+                      routeMame: Medicine.routeName,
+                      list: mainlist,
+                    ),
                   )
                 ]))));
   }
@@ -117,77 +120,90 @@ class MedicineP extends StatelessWidget {
               Navigator.pushNamed(context, const ShowMedicine().routeName,
                   arguments: i);
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Card(
-                    child: i.image == null
-                        ? const FaIcon(FontAwesomeIcons.image)
-                        : ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 160),
-                            child: Image.network(
-                              i.image!,
-                              fit: BoxFit.cover,
-                            ),
-                          )),
-                Padding(
-                  padding: const EdgeInsets.only(right: 5.0),
-                  child: Text(
-                    i.name,
-                    style: ThemeM.theme().textTheme.labelLarge,
-                  ),
-                ),
-                Row(
-                  children: [
-                    i.category == null
-                        ? const SizedBox()
-                        : Container(
-                            margin: const EdgeInsets.all(2),
-                            padding: const EdgeInsets.all(3),
-                            color: Colors.orangeAccent.shade100,
-                            child: Text(
-                              i.category!,
-                              style: ThemeM.theme(color: Colors.black54)
-                                  .textTheme
-                                  .bodySmall,
-                            ),
-                          ),
-                    i.type == null
-                        ? const SizedBox()
-                        : Container(
-                            margin: const EdgeInsets.all(2),
-                            padding: const EdgeInsets.all(3),
-                            color: Colors.orangeAccent.shade100,
-                            child: Text(
-                              i.type!,
-                              style: ThemeM.theme(color: Colors.black54)
-                                  .textTheme
-                                  .bodySmall,
-                            ),
-                          )
-                  ],
-                ),
-                Padding(
+            child: Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minHeight: 100,
+                        maxHeight: 105,
+                      ),
+                      child: Center(
+                          child: i.image == null
+                              ? const FaIcon(FontAwesomeIcons.image)
+                              : ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 160),
+                                  child: Image(
+                                    image: NetworkImage(i.image!),
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const FaIcon(
+                                          FontAwesomeIcons.image);
+                                    },
+                                    fit: BoxFit.cover,
+                                  ),
+                                ))),
+                  Padding(
                     padding: const EdgeInsets.only(right: 5.0),
                     child: Text(
-                      "${i.price != null ? intl.NumberFormat("#,###").format(i.price) : "_"} ل.س",
-                      style: ThemeM.theme(color: Colors.black, size: 15.0)
-                          .textTheme
-                          .bodyLarge,
-                    )),
-                buttonMz(
-                    radius: 4.0,
-                    labelColor: Colors.white,
-                    color: Colors.orangeAccent,
-                    label: "أضف إلى السلة",
-                    labelsize: 11.0,
-                    icon: FontAwesomeIcons.cartPlus,
-                    iconColor: Colors.white60,
-                    function: () {
-                      context.read<AddtoCartlistProvider>().addProduct(item: i);
-                    }),
-                const Divider()
-              ],
+                      i.name,
+                      style: ThemeM.theme().textTheme.labelLarge,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      i.category == null
+                          ? const SizedBox()
+                          : Container(
+                              margin: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.all(3),
+                              color: Colors.orangeAccent.shade100,
+                              child: Text(
+                                i.category!,
+                                style: ThemeM.theme(color: Colors.black54)
+                                    .textTheme
+                                    .bodySmall,
+                              ),
+                            ),
+                      i.type == null
+                          ? const SizedBox()
+                          : Container(
+                              margin: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.all(3),
+                              color: Colors.orangeAccent.shade100,
+                              child: Text(
+                                i.type!,
+                                style: ThemeM.theme(color: Colors.black54)
+                                    .textTheme
+                                    .bodySmall,
+                              ),
+                            )
+                    ],
+                  ),
+                  Padding(
+                      padding: const EdgeInsets.only(right: 5.0),
+                      child: Text(
+                        "${i.price != null ? intl.NumberFormat("#,###").format(i.price) : "_"} ل.س",
+                        style: ThemeM.theme(color: Colors.black, size: 15.0)
+                            .textTheme
+                            .bodyLarge,
+                      )),
+                  buttonMz(
+                      radius: 4.0,
+                      labelColor: Colors.white,
+                      color: Colors.orangeAccent,
+                      label: "أضف إلى السلة",
+                      labelsize: 11.0,
+                      icon: FontAwesomeIcons.cartPlus,
+                      iconColor: Colors.white60,
+                      function: () {
+                        context
+                            .read<AddtoCartlistProvider>()
+                            .addProduct(item: i);
+                      }),
+                ],
+              ),
             ),
           );
         }),

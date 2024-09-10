@@ -57,7 +57,10 @@ class ShowDiseaseP extends StatelessWidget {
                       child: Center(
                         child: item.image == null
                             ? const FaIcon(FontAwesomeIcons.image)
-                            : Image.network(item.image!, fit: BoxFit.cover),
+                            : Image.network(item.image!,
+                                errorBuilder: (context, error, stackTrace) {
+                                return const FaIcon(FontAwesomeIcons.image);
+                              }, fit: BoxFit.cover),
                       ),
                     ),
                   ),
@@ -90,16 +93,13 @@ class ShowDiseaseP extends StatelessWidget {
                     ),
                     subtitle: paragraph(show, showRead, item.treatment, 3),
                   ),
-                  ListTile(
-                      title: Text(
-                        "العلاج",
-                        style: ThemeM.theme().textTheme.bodyLarge,
-                      ),
-                      subtitle: buttonMz(
-                          label: buttonMz(
-                        label: item.medicin != null ? item.medicin!.name : '',
-                        icon: FontAwesomeIcons.flask,
-                      )))
+
+                  // subtitle: buttonMz(
+                  //     label: buttonMz(
+                  //   label: item.medicin != null ? item.medicin!.name : '',
+                  //   icon: FontAwesomeIcons.flask,
+                  // )
+                  // )
                 ])))));
   }
 }

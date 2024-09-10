@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fit_medicine_02/controllers/functions/api_requests.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
+import 'package:fit_medicine_02/controllers/static/server_info.dart';
 import 'package:fit_medicine_02/controllers/static/userlogin_Info.dart';
 import 'package:fit_medicine_02/models/user_model.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
@@ -16,17 +17,48 @@ class DrawerMz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<bool> list = [true, false, false, false, false];
-    return ChangeNotifierProvider<ShowMoreLessProvider>(
-      create: (_) => ShowMoreLessProvider(list),
-      child: const DrawerMzP(),
-    );
+    List<bool> list = [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ];
+    var notifications;
+    return FutureBuilder(future: Future(() async {
+      notifications = await apiGET(api: "/api/app/notifications/all");
+
+      return await apiGET(api: "/api/get-my-order");
+    }), builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Drawer(
+          child: Center(child: CircularProgressIndicator.adaptive()),
+        );
+      } else {
+        return ChangeNotifierProvider<ShowMoreLessProvider>(
+          create: (_) => ShowMoreLessProvider(list),
+          child: DrawerMzP(
+            snapdata: snapshot,
+            notification: notifications,
+            readed: required,
+          ),
+        );
+      }
+    });
   }
 }
 
 class DrawerMzP extends StatelessWidget {
-  const DrawerMzP({super.key});
-
+  const DrawerMzP(
+      {super.key,
+      required this.snapdata,
+      required this.notification,
+      required this.readed});
+  final snapdata, notification, readed;
   @override
   Widget build(BuildContext context) {
     if (UserLoginInfo.get(sharedPref: sharedPref)[2] == "veterinarian") {
@@ -65,18 +97,16 @@ class DrawerMzP extends StatelessWidget {
                                 border: Border.all(),
                                 borderRadius: BorderRadius.circular(5)),
                             child: ListTile(
-                              leading:
-                                  //  veter != null && veter!.photo != null
-                                  //     ? Container(
-                                  //         width: 70,
-                                  //         height: 70,
-                                  //         decoration: BoxDecoration(
-                                  //           borderRadius: BorderRadius.circular(10),
-                                  //         ),
-                                  //         child: Image.network(veter!.photo!),
-                                  //       )
-                                  //     :
-                                  FaIcon(veter != null
+                              leading: veter != null && veter!.photo != null
+                                  ? Container(
+                                      width: 70,
+                                      height: 70,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Image.network(veter!.photo!),
+                                    )
+                                  : FaIcon(veter != null
                                       ? FontAwesomeIcons.userDoctor
                                       : FontAwesomeIcons.user),
                               title: Text(veter != null
@@ -115,7 +145,7 @@ class DrawerMzP extends StatelessWidget {
                               ),
                               title: const Text("الإشعارات"),
                               trailing: IconButton(
-                                  onPressed: () {},
+                                  onPressed: () => itemsR.choosepure(7),
                                   icon: const FaIcon(
                                     FontAwesomeIcons.arrowLeft,
                                   ))),
@@ -231,11 +261,9 @@ class DrawerMzP extends StatelessWidget {
                               child: Center(
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(25),
-                                  child:
-                                      // veter != null && veter!.photo != null
-                                      //     ? Image.network(veter!.photo!)
-                                      //     :
-                                      FaIcon(veter != null
+                                  child: veter != null && veter!.photo != null
+                                      ? Image.network(veter!.photo!)
+                                      : FaIcon(veter != null
                                           ? FontAwesomeIcons.userDoctor
                                           : FontAwesomeIcons.person),
                                 ),
@@ -244,103 +272,185 @@ class DrawerMzP extends StatelessWidget {
                       ));
                 }),
 
+//notifi
+            Visibility(
+                visible: items[7],
+                child: FutureBuilder(
+                    future: Future(() async =>
+                        await apiGET(api: "/api/app/notifications/all")),
+                    builder: (context, s) {
+                      if (!s.hasData) {
+                        return const Text("لا يوجد إشعارات جديدة");
+                      } else {
+                        Map data = s.data;
+                        return TweenAnimationBuilder(
+                            tween: Tween<double>(
+                                begin: 1000.0, end: items[7] ? 0.0 : 1000.0),
+                            duration: const Duration(milliseconds: 500),
+                            builder: (context, value, child) {
+                              return Transform.translate(
+                                  offset: Offset(value, 0.0),
+                                  child: Container(
+                                    constraints:
+                                        const BoxConstraints(minHeight: 300),
+                                    margin: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child: Column(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Center(
+                                            child: Text(
+                                              "الإشعارات",
+                                              style: ThemeM.theme()
+                                                  .textTheme
+                                                  .labelMedium,
+                                            ),
+                                          ),
+                                          Divider(),
+                                          ...data['data']['chat_notifications']
+                                              .map((e) => Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            15.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            e['data']['message']
+                                                                        [
+                                                                        'type'] ==
+                                                                    "image"
+                                                                ? Image.network(
+                                                                    "http://$serverIp${e['data']['message']['message']}",
+                                                                    height: 50,
+                                                                    width: 50,
+                                                                  )
+                                                                : Text(
+                                                                    "${e['data']['message']['message']}"),
+                                                            Text(
+                                                                "from_  ${e['data']['sender_name']}"),
+                                                            const Divider()
+                                                          ],
+                                                        ),
+                                                        Spacer(),
+                                                        IconButton(
+                                                            onPressed: () async =>
+                                                                await apiPost(
+                                                                    api:
+                                                                        "/api/app/mark_read/${e['data']['id']}"),
+                                                            icon: const FaIcon(
+                                                                FontAwesomeIcons
+                                                                    .message))
+                                                      ],
+                                                    ),
+                                                  )),
+                                          Divider()
+                                        ]),
+                                  ));
+                            });
+                      }
+                    })),
             //orders
 
             Visibility(
-              visible: items[3],
-              child: TweenAnimationBuilder(
-                  tween: Tween<double>(
-                      begin: 1000.0, end: items[3] ? 0.0 : 1000.0),
-                  duration: const Duration(milliseconds: 500),
-                  builder: (context, value, child) {
-                    return Transform.translate(
-                        offset: Offset(value, 0.0),
-                        child: FutureBuilder(
-                            future: Future(() async =>
-                                await apiGET(api: "/api/get-my-order")),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child:
-                                        CircularProgressIndicator.adaptive());
-                              } else {
-                                return snapshot.data == null
-                                    ? DecoratedBox(
-                                        decoration: BoxDecoration(),
-                                        child: Text("لا يوجد طلبات"),
-                                      )
-                                    : Container(
-                                        constraints:
-                                            BoxConstraints(minHeight: 300),
-                                        margin: EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
-                                            border:
-                                                Border.all(color: Colors.grey),
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        child: Column(
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: buttonMz(
-                                                        padding: 2.0,
-                                                        label: "الحالية",
-                                                        color: Colors
-                                                            .orangeAccent
-                                                            .shade200,
-                                                        labelColor:
-                                                            Colors.white,
-                                                        labelsize: 10.0,
-                                                        radius: 5.0,
-                                                        function: () {}),
-                                                  ),
-                                                  Expanded(
-                                                    child: buttonMz(
-                                                        padding: 2.0,
-                                                        label: "السابقة",
-                                                        labelColor:
-                                                            Colors.white,
-                                                        color: Colors.grey,
-                                                        labelsize: 10.0,
-                                                        radius: 5.0,
-                                                        function: () {}),
-                                                  )
-                                                ],
-                                              ),
-                                              ...snapshot.data['data']['orders']
-                                                  .map((e) => Column(
-                                                        children: [
-                                                          ListTile(
-                                                              leading: Text(e[
-                                                                  'order_number']),
-                                                              title: Text(e[
-                                                                  'location']),
-                                                              subtitle: Column(
-                                                                children: [
-                                                                  Text(
-                                                                      "${e['total_price']}"),
-                                                                  Text(
-                                                                      "${e['status']}")
-                                                                ],
-                                                              ),
-                                                              trailing: IconButton(
-                                                                  onPressed:
-                                                                      () {},
-                                                                  icon: FaIcon(
-                                                                      FontAwesomeIcons
-                                                                          .info))),
-                                                          Divider()
-                                                        ],
-                                                      ))
-                                            ]),
-                                      );
-                              }
-                            }));
-                  }),
-            ),
+                visible: items[3],
+                child: TweenAnimationBuilder(
+                    tween: Tween<double>(
+                        begin: 1000.0, end: items[3] ? 0.0 : 1000.0),
+                    duration: const Duration(milliseconds: 500),
+                    builder: (context, value, child) {
+                      return Transform.translate(
+                          offset: Offset(value, 0.0),
+                          child: snapdata.data == null ||
+                                  snapdata.data['success'] != true ||
+                                  snapdata.data['data'].isEmpty
+                              ? const DecoratedBox(
+                                  decoration: BoxDecoration(),
+                                  child: SizedBox(
+                                    width: 300,
+                                    height: 300,
+                                    child: Center(child: Text("لا يوجد طلبات")),
+                                  ))
+                              : Container(
+                                  constraints:
+                                      const BoxConstraints(minHeight: 300),
+                                  margin: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: buttonMz(
+                                                  padding: 2.0,
+                                                  label: "الحالية",
+                                                  color: !items[5]
+                                                      ? Colors
+                                                          .orangeAccent.shade200
+                                                      : Colors.grey,
+                                                  labelColor: Colors.white,
+                                                  labelsize: 10.0,
+                                                  radius: 5.0,
+                                                  function: () =>
+                                                      itemsR.togglepure(5)),
+                                            ),
+                                            Expanded(
+                                              child: buttonMz(
+                                                  padding: 2.0,
+                                                  label: "السابقة",
+                                                  labelColor: Colors.white,
+                                                  color: items[5]
+                                                      ? Colors
+                                                          .orangeAccent.shade200
+                                                      : Colors.grey,
+                                                  labelsize: 10.0,
+                                                  radius: 5.0,
+                                                  function: () =>
+                                                      itemsR.togglepure(5)),
+                                            )
+                                          ],
+                                        ),
+                                        ...snapdata.data['data']['orders']
+                                            .where((s) => !items[5]
+                                                ? s['status'] == "pending"
+                                                : s['status'] != "pending")
+                                            .map((e) => Column(
+                                                  children: [
+                                                    ListTile(
+                                                        leading: Text(
+                                                            e['order_number']),
+                                                        title:
+                                                            Text(e['location']),
+                                                        subtitle: Column(
+                                                          children: [
+                                                            Text(
+                                                                "${e['total_price']}"),
+                                                            Text(
+                                                                "${e['status']}")
+                                                          ],
+                                                        ),
+                                                        trailing: IconButton(
+                                                            onPressed: () {},
+                                                            icon: const FaIcon(
+                                                                FontAwesomeIcons
+                                                                    .info))),
+                                                    const Divider()
+                                                  ],
+                                                ))
+                                      ]),
+                                ));
+                    })),
 
             //cotact
 

@@ -10,10 +10,11 @@ class UserLoginInfo {
       required password,
       required usertype,
       required user,
-      required token}) async {
+      required token,
+      required String id}) async {
     if (sharedPref != null) {
       await sharedPref.setStringList(
-          'userInfo', [userkey, password, usertype, user, token]);
+          'userInfo', [userkey, password, usertype, user, token, id]);
     }
   }
 

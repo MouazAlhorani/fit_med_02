@@ -56,23 +56,46 @@ class ListwithbooleanProvider<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  pickfile({required TextFormFieldModel item, ctx}) async {
+  pickfile({required TextFormFieldModel item, ctx, multifiles = false}) async {
     if (item.controller!.text.isEmpty) {
-      PlatformFile? file;
+      List<PlatformFile?>? files;
       try {
-        file = await pickfilFunc();
-      } catch (e) {}
-      if (file != null) {
-        item.controller!.text = file.path!;
+        files = await pickfilFunc(multifiles: multifiles);
+      } catch (e) {
+        print(e);
+      }
+      if (files != null && multifiles == false) {
+        item.controller!.text = files[0]!.path!;
+      } else if (files != null && multifiles == true) {
+        item.maxlines = files.length;
+        for (var i in files) {
+          item.controller!.text += "${i!.path!}(;)";
+        }
       }
     } else {
       return showDialog(
           context: ctx,
           builder: (_) {
             return AlertDialog(
+              scrollable: true,
               content: Stack(
                 children: [
-                  Image.file(File(item.controller!.text)),
+                  item.controller!.text.contains("(;)")
+                      ? Column(
+                          children: [
+                            ...item.controller!.text
+                                .split('(;)')
+                                .sublist(
+                                    0,
+                                    item.controller!.text.split('(;)').length -
+                                        1)
+                                .map((r) => Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Image.file(File(r)),
+                                    ))
+                          ],
+                        )
+                      : Image.file(File(item.controller!.text)),
                   Positioned(
                     top: 30,
                     left: 10,
@@ -145,4 +168,46 @@ class WaitProvider extends ListwithbooleanProvider {
   @override
   final List<bool> list;
   WaitProvider(this.list) : super(list: list);
+}
+
+class MzProvider extends ChangeNotifier {
+  Map<String, bool> _items = {};
+  Map<String, bool> get items => _items;
+  MzProvider(Map<String, bool> items) {
+    _items = items;
+  }
+  toggleOne(name) {
+    items[name] = !items[name]!;
+    notifyListeners();
+  }
+
+  setvalue(value, name) {
+    items[name] = value;
+    notifyListeners();
+  }
+
+  chooseOneFalseAll(name) {
+    items.updateAll((k, v) => false);
+    items[name] = true;
+    print(items.entries);
+    notifyListeners();
+  }
+}
+
+class PickImageProvider extends ChangeNotifier {
+  List<PlatformFile> _items = [];
+  List<PlatformFile> get items => _items;
+  PickImageProvider(List<PlatformFile> items) {
+    _items = items;
+  }
+
+  addvalue(PlatformFile name) {
+    _items.add(name);
+    notifyListeners();
+  }
+
+  reset() {
+    _items.clear();
+    notifyListeners();
+  }
 }

@@ -88,7 +88,13 @@ class ShowProductP extends StatelessWidget {
                   child: Center(
                     child: item.image == null
                         ? const FaIcon(FontAwesomeIcons.image)
-                        : Image.network(item.image!, fit: BoxFit.cover),
+                        : Image.network(
+                            item.image!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const FaIcon(FontAwesomeIcons.image);
+                            },
+                          ),
                   ),
                 ),
               ),
@@ -105,7 +111,8 @@ class ShowProductP extends StatelessWidget {
                       serviceType == ServiceType.feed
                           ? intl.NumberFormat("#,### ل س لـ 1 كغ")
                               .format(item.price)
-                          : intl.NumberFormat("#,### ل س").format(item.price),
+                          : intl.NumberFormat("#,### ل س")
+                              .format(item.price ?? 0),
                       style: ThemeM.theme().textTheme.bodySmall,
                     ),
                   ],

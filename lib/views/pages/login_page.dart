@@ -2,7 +2,6 @@ import 'package:fit_medicine_02/controllers/functions/login.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
 import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
 import 'package:fit_medicine_02/models/provider_itemwithboolean_model.dart';
-import 'package:fit_medicine_02/views/pages/homepage.dart';
 import 'package:fit_medicine_02/views/pages/register_breed_page.dart';
 import 'package:fit_medicine_02/views/pages/register_veter_page.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
@@ -62,7 +61,7 @@ class LoginPageP extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool wait = context.watch<WaitProvider>().list[0];
-    WaitProvider waitRead = context.read<WaitProvider>();
+    WaitProvider waitProvider = context.read<WaitProvider>();
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
     List<TextFormFieldModel> inputfields =
@@ -118,6 +117,7 @@ class LoginPageP extends StatelessWidget {
                                       submit: (x) async {
                                         if (_formKey.currentState?.validate() ==
                                             true) {
+                                          waitProvider.togglepure(0);
                                           await login(
                                               ctx: context,
                                               email: inputfields[0]
@@ -139,6 +139,7 @@ class LoginPageP extends StatelessWidget {
                                               password: inputfields[1]
                                                   .controller!
                                                   .text);
+                                          waitProvider.togglepure(0);
                                         }
                                       },
                                       label: e.label,
@@ -151,7 +152,7 @@ class LoginPageP extends StatelessWidget {
                                       maxlength: e.maxlength)),
                                   const Divider(),
                                   wait
-                                      ? LinearProgressIndicator()
+                                      ? const LinearProgressIndicator()
                                       : buttonMz(
                                           labelsize: 25.0,
                                           label: "دخول",
@@ -163,8 +164,7 @@ class LoginPageP extends StatelessWidget {
                                             if (_formKey.currentState
                                                     ?.validate() ==
                                                 true) {
-                                              waitRead.togglepure(0);
-
+                                              waitProvider.togglepure(0);
                                               await login(
                                                   ctx: context,
                                                   email: inputfields[0]
@@ -186,7 +186,7 @@ class LoginPageP extends StatelessWidget {
                                                   password: inputfields[1]
                                                       .controller!
                                                       .text);
-                                              waitRead.togglepure(0);
+                                              waitProvider.togglepure(0);
                                             }
                                           }),
                                   const SizedBox(height: 50),

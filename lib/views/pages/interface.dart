@@ -1,6 +1,6 @@
 import 'package:fit_medicine_02/controllers/functions/login.dart';
 import 'package:fit_medicine_02/controllers/providers/directionality_provider.dart';
-import 'package:fit_medicine_02/views/pages/homepage.dart';
+import 'package:fit_medicine_02/controllers/providers/listwithboolean_provider.dart';
 import 'package:fit_medicine_02/views/pages/login_page.dart';
 import 'package:fit_medicine_02/views/theme/theme.dart';
 import 'package:fit_medicine_02/views/widget/button_mz.dart';
@@ -14,6 +14,21 @@ class InterFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<bool> wait = [false];
+    return ChangeNotifierProvider<WaitProvider>(
+      create: (_) => WaitProvider(wait),
+      child: const InterFaceP(),
+    );
+  }
+}
+
+class InterFaceP extends StatelessWidget {
+  const InterFaceP({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    bool wait = context.watch<WaitProvider>().list[0];
+    WaitProvider waitProvider = context.read<WaitProvider>();
     return SafeArea(
       child: Directionality(
         textDirection:
@@ -54,43 +69,49 @@ class InterFace extends StatelessWidget {
                         ])),
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Align(
                       alignment: Alignment.center,
-                      child: buttonMz(
-                          labelsize: 25.0,
-                          label: "ابــــدأ",
-                          icon: FontAwesomeIcons.house,
-                          iconColor: Colors.orangeAccent,
-                          function: () async {
-                            bool? loggedin = false;
-                            if (sharedPref != null &&
-                                sharedPref!.getStringList('userInfo') != null) {
-                              await login(
-                                  ctx: context,
-                                  email: sharedPref!
-                                          .getStringList('userInfo')![0]
-                                          .contains("@")
-                                      ? sharedPref!
-                                          .getStringList('userInfo')![0]
-                                      : null,
-                                  phone: !sharedPref!
-                                          .getStringList('userInfo')![0]
-                                          .contains("@")
-                                      ? sharedPref!
-                                          .getStringList('userInfo')![0]
-                                      : null,
-                                  password: sharedPref!
-                                      .getStringList('userInfo')![1]);
-                            }
+                      child: wait
+                          ? const LinearProgressIndicator()
+                          : buttonMz(
+                              labelsize: 25.0,
+                              label: "ابــــدأ",
+                              icon: FontAwesomeIcons.house,
+                              iconColor: Colors.orangeAccent,
+                              function: () async {
+                                if (sharedPref != null &&
+                                    sharedPref!.getStringList('userInfo') !=
+                                        null) {
+                                  waitProvider.togglepure(0);
+                                  await login(
+                                      ctx: context,
+                                      email: sharedPref!
+                                              .getStringList('userInfo')![0]
+                                              .contains("@")
+                                          ? sharedPref!
+                                              .getStringList('userInfo')![0]
+                                          : null,
+                                      phone: !sharedPref!
+                                              .getStringList('userInfo')![0]
+                                              .contains("@")
+                                          ? sharedPref!
+                                              .getStringList('userInfo')![0]
+                                          : null,
+                                      password: sharedPref!
+                                          .getStringList('userInfo')![1]);
+                                  waitProvider.togglepure(0);
+                                }
 
-                            if (sharedPref == null ||
-                                sharedPref!.getStringList('userInfo') == null) {
-                              Navigator.pushNamed(context, LoginPage.routeName);
-                            }
-                          }),
+                                if (sharedPref == null ||
+                                    sharedPref!.getStringList('userInfo') ==
+                                        null) {
+                                  Navigator.pushNamed(
+                                      context, LoginPage.routeName);
+                                }
+                              }),
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                   ],
                 )
               ],

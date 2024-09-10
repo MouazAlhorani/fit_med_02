@@ -73,21 +73,22 @@ class VeterModel extends UserModel {
 class BreederModel extends UserModel {
   final UserType userType;
   final String? mobile, region;
-  final int? categoyId;
+  final int? categoryId;
   BreederModel(
       {this.userType = UserType.breeder,
       required super.id,
       required super.username,
       this.mobile,
       this.region,
-      this.categoyId});
+      this.categoryId});
+
   factory BreederModel.local({required BreederModel data}) {
     return BreederModel(
         id: data.id,
         username: data.username,
         mobile: data.mobile,
         region: data.region,
-        categoyId: data.categoyId);
+        categoryId: data.categoryId);
   }
   factory BreederModel.fromjson({data}) {
     return BreederModel(
@@ -95,6 +96,6 @@ class BreederModel extends UserModel {
         username: data['name'],
         mobile: data['mobile'],
         region: data['region'],
-        categoyId: data['category_id']);
+        categoryId: data['category_id']);
   }
 }
